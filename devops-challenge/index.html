@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ben Leyder – DevOps Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #34d399;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --highlight: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 5rem 0 3rem;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+
+  .hero-eyebrow::before {
+    content: '> ';
+    color: var(--accent3);
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.2s;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    max-width: 620px;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.3s;
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.4s;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 2px;
+    border: 1px solid;
+    letter-spacing: 0.05em;
+  }
+
+  .tag-blue { border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,0.06); }
+  .tag-purple { border-color: var(--accent2); color: var(--accent2); background: rgba(129,140,248,0.06); }
+  .tag-green { border-color: var(--accent3); color: var(--accent3); background: rgba(52,211,153,0.06); }
+  .tag-amber { border-color: var(--highlight); color: var(--highlight); background: rgba(245,158,11,0.06); }
+
+  /* ── STAT BAR ── */
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 5rem;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.5s;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section {
+    margin-bottom: 4rem;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    opacity: 0.6;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--text);
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* ── ARCH DIAGRAM ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 2;
+    color: #94a3b8;
+    overflow-x: auto;
+  }
+
+  .arch-diagram .node { color: var(--accent); font-weight: 500; }
+  .arch-diagram .arrow { color: var(--muted); }
+  .arch-diagram .label { color: var(--accent3); }
+  .arch-diagram .note { color: var(--accent2); }
+
+  /* ── PHASE CARDS ── */
+  .phase-grid {
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .phase-card {
+    background: var(--surface);
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: start;
+    transition: background 0.2s;
+  }
+
+  .phase-card:hover { background: var(--surface2); }
+
+  .phase-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    opacity: 0.5;
+    padding-top: 0.2rem;
+    white-space: nowrap;
+  }
+
+  .phase-title {
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+  }
+
+  .phase-body {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  .phase-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+  }
+
+  .phase-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    padding: 0.15rem 0.5rem;
+    background: rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.2);
+    color: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* ── SKILLS MATRIX ── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .skill-category {
+    background: var(--surface);
+    padding: 1.5rem 2rem;
+  }
+
+  .skill-category-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent2);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .skill-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .skill-list li {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .skill-list li::before {
+    content: '▸';
+    color: var(--accent3);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
+  /* ── METRICS ── */
+  .metrics-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  .metric {
+    text-align: center;
+  }
+
+  .metric-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .metric-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .metric-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  /* ── HIGHLIGHT CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--accent3);
+    background: rgba(52,211,153,0.05);
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 4px 4px 0;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    color: #94a3b8;
+  }
+
+  .callout strong { color: var(--accent3); font-weight: 500; }
+
+  /* ── PROBLEM/SOLUTION PAIRS ── */
+  .ps-pair {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .ps-problem {
+    padding: 1rem 1.5rem;
+    background: rgba(239,68,68,0.04);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+    color: #94a3b8;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .ps-problem-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: #f87171;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .ps-solution {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .ps-solution-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--accent3);
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.2);
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 0;
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .footer-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-link {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+
+  .footer-link:hover { color: var(--text); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section:nth-child(1) { animation-delay: 0.5s; }
+  .section:nth-child(2) { animation-delay: 0.6s; }
+  .section:nth-child(3) { animation-delay: 0.7s; }
+  .section:nth-child(4) { animation-delay: 0.8s; }
+  .section:nth-child(5) { animation-delay: 0.9s; }
+
+  /* ── PRINT / EXPORT ── */
+  @media print {
+    body { background: white; color: #111; }
+    body::before { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .stat-bar { grid-template-columns: repeat(2, 1fr); }
+    .skills-grid { grid-template-columns: 1fr; }
+    .metrics-card { grid-template-columns: 1fr; }
+    .footer { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">portfolio / devops / cloud infrastructure</div>
+    <h1>End-to-End Cloud<br>Deployment on <em>AWS ECS</em></h1>
+    <p class="hero-desc">
+      Provisioned a production-grade containerized application on AWS Fargate with full CI/CD automation, infrastructure as code, and GitOps — built from scratch in under 72 hours.
+    </p>
+    <div class="tag-row">
+      <span class="tag tag-blue">AWS ECS Fargate</span>
+      <span class="tag tag-blue">Terraform</span>
+      <span class="tag tag-blue">Docker</span>
+      <span class="tag tag-purple">Jenkins</span>
+      <span class="tag tag-purple">GitHub Actions</span>
+      <span class="tag tag-green">CI/CD</span>
+      <span class="tag tag-green">GitOps</span>
+      <span class="tag tag-amber">ECR</span>
+      <span class="tag tag-amber">ALB</span>
+      <span class="tag tag-amber">CloudWatch</span>
+    </div>
+  </div>
+
+  <!-- STAT BAR -->
+  <div class="stat-bar">
+    <div class="stat-item">
+      <span class="stat-value">45</span>
+      <span class="stat-label">AWS Resources<br>Provisioned</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">99.9<span style="font-size:1.2rem">%</span></span>
+      <span class="stat-label">Availability<br>Under Load</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">2</span>
+      <span class="stat-label">CI/CD Pipelines<br>Implemented</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">32<span style="font-size:1.2rem">s</span></span>
+      <span class="stat-label">Pipeline Build<br>Duration</span>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Architecture</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="arch-diagram">
+<span class="label">Developer Push</span>
+    <span class="arrow">──────────────────────────────────────────────────────</span>
+    │
+    ▼
+<span class="node">GitHub (main branch)</span>   <span class="arrow">──webhook──▶</span>   <span class="node">Jenkins EC2</span> <span class="note">(t3.small / Amazon Linux 2023)</span>
+<span class="node">GitHub (gitops branch)</span>  <span class="arrow">──OIDC──────▶</span>  <span class="node">GitHub Actions</span> <span class="note">(ubuntu-latest runner)</span>
+    │                                          │
+    └──────────────── both pipelines ──────────┘
+                            │
+              <span class="arrow">┌─────────────┼─────────────┐</span>
+              ▼             ▼             ▼
+        <span class="node">docker build</span>   <span class="node">ECR push</span>    <span class="node">ECS update</span>
+              │             │             │
+              └─────────────┴─────────────┘
+                            │
+                            ▼
+            <span class="node">ALB</span> <span class="note">(Application Load Balancer)</span>
+              <span class="arrow">├── /      ──▶</span> <span class="node">ECS Frontend Service</span> <span class="note">(React / Fargate)</span>
+              <span class="arrow">└── /api/* ──▶</span> <span class="node">ECS Backend Service</span>  <span class="note">(Express / Fargate)</span>
+    </div>
+
+    <div class="callout">
+      <strong>Key design decision:</strong> Both services run in private subnets with no public IP. All traffic enters through the ALB in the public subnet, which handles path-based routing between frontend and backend — a pattern that mirrors production-grade architectures.
+    </div>
+  </div>
+
+  <!-- WHAT I BUILT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">What I Built</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="phase-grid">
+      <div class="phase-card">
+        <span class="phase-num">01</span>
+        <div>
+          <div class="phase-title">Infrastructure as Code — Terraform</div>
+          <div class="phase-body">Wrote ten modular Terraform files provisioning a complete AWS environment: custom VPC with public/private subnets across two AZs, NAT gateway, internet gateway, ALB with path-based routing, ECS cluster, Fargate task definitions, ECR repositories with lifecycle policies, IAM roles, security groups, and a Jenkins EC2 instance with Elastic IP.</div>
+          <div class="phase-tags">
+            <span class="phase-tag">terraform</span>
+            <span class="phase-tag">vpc</span>
+            <span class="phase-tag">ecs fargate</span>
+            <span class="phase-tag">iam</span>
+            <span class="phase-tag">ecr</span>
+            <span class="phase-tag">alb</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-card">
+        <span class="phase-num">02</span>
+        <div>
+          <div class="phase-title">Containerization — Docker</div>
+          <div class="phase-body">Containerized a React frontend and Express backend with separate Dockerfiles. Debugged a Node.js version compatibility issue where Node 18 broke the React build due to a postcss-safe-parser incompatibility — resolved by pinning to Node 16, which matched the project's lockfile.</div>
+          <div class="phase-tags">
+            <span class="phase-tag">docker</span>
+            <span class="phase-tag">node.js</span>
+            <span class="phase-tag">react</span>
+            <span class="phase-tag">express</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-card">
+        <span class="phase-num">03</span>
+        <div>
+          <div class="phase-title">Jenkins CI/CD Pipeline</div>
+          <div class="phase-body">Deployed Jenkins as a Docker container on an EC2 instance with Docker-in-Docker support. Wrote a declarative Jenkinsfile with five stages: checkout, Docker build, ECR authentication, image push, and ECS service update. Configured GitHub webhook for automatic pipeline triggers on every push.</div>
+          <div class="phase-tags">
+            <span class="phase-tag">jenkins</span>
+            <span class="phase-tag">groovy</span>
+            <span class="phase-tag">webhooks</span>
+            <span class="phase-tag">ecr auth</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-card">
+        <span class="phase-num">04</span>
+        <div>
+          <div class="phase-title">GitOps with GitHub Actions & OIDC</div>
+          <div class="phase-body">Implemented a parallel GitOps deployment workflow on a separate branch using GitHub Actions. Configured AWS OIDC identity federation so the pipeline authenticates using short-lived tokens rather than stored credentials — a more secure pattern than traditional access key injection.</div>
+          <div class="phase-tags">
+            <span class="phase-tag">github actions</span>
+            <span class="phase-tag">oidc</span>
+            <span class="phase-tag">iam roles</span>
+            <span class="phase-tag">zero secrets</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-card">
+        <span class="phase-num">05</span>
+        <div>
+          <div class="phase-title">Auto Scaling & Load Testing</div>
+          <div class="phase-body">Configured CPU-based auto scaling for both ECS services (min 1, max 4 tasks, 50% CPU threshold). Validated with a siege load test at 250 concurrent users for 2 minutes, achieving 99.86% availability and 141 transactions/second. Verified CloudWatch scale-in and scale-out alarms.</div>
+          <div class="phase-tags">
+            <span class="phase-tag">auto scaling</span>
+            <span class="phase-tag">cloudwatch</span>
+            <span class="phase-tag">siege</span>
+            <span class="phase-tag">load testing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBLEMS SOLVED -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Problems I Solved</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Real-world troubleshooting is where engineering skill shows. Here's what I ran into and how I resolved it.</p>
+
+    <div class="ps-pair">
+      <div class="ps-problem">
+        <span class="ps-problem-label">ISSUE</span>
+        GitHub rejected a push due to a 685MB Terraform provider binary tracked in git history — even after deleting the folder locally.
+      </div>
+      <div class="ps-solution">
+        <span class="ps-solution-label">RESOLVED</span>
+        Used git filter-branch to rewrite commit history and permanently remove the binary. Updated .gitignore with **/.terraform/ and force-pushed the cleaned history.
+      </div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-problem">
+        <span class="ps-problem-label">ISSUE</span>
+        Jenkins pipeline SSH connection to GitHub failed with "Host key verification failed" — the server had never connected to GitHub before.
+      </div>
+      <div class="ps-solution">
+        <span class="ps-solution-label">RESOLVED</span>
+        Switched repository URL from SSH to HTTPS. PAT token credentials handle authentication cleanly over HTTPS without requiring pre-established host keys.
+      </div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-problem">
+        <span class="ps-problem-label">ISSUE</span>
+        Jenkins container exited immediately with volume permission errors on /var/jenkins_home — Docker created the directory as root before Jenkins could write to it.
+      </div>
+      <div class="ps-solution">
+        <span class="ps-solution-label">RESOLVED</span>
+        Pre-created the directory and set ownership to UID 1000 (the Jenkins container user) before starting the container: sudo chown -R 1000:1000 /var/jenkins_home.
+      </div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-problem">
+        <span class="ps-problem-label">ISSUE</span>
+        React build failed inside Docker with ERR_PACKAGE_PATH_NOT_EXPORTED from postcss-safe-parser when using Node 18 as specified in the docs.
+      </div>
+      <div class="ps-solution">
+        <span class="ps-solution-label">RESOLVED</span>
+        Identified the root cause as a Node 18 incompatibility with older postcss dependencies. Pinned the frontend Dockerfile to Node 16 to match the project's package lockfile.
+      </div>
+    </div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Skills Demonstrated</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="skills-grid">
+      <div class="skill-category">
+        <div class="skill-category-title">Cloud & Infrastructure</div>
+        <ul class="skill-list">
+          <li>AWS ECS Fargate (task definitions, services, auto scaling)</li>
+          <li>Application Load Balancer with path-based routing</li>
+          <li>VPC design with public/private subnet architecture</li>
+          <li>ECR with lifecycle policies</li>
+          <li>IAM roles, policies, and OIDC federation</li>
+          <li>CloudWatch alarms and log groups</li>
+          <li>NAT Gateway and Internet Gateway configuration</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <div class="skill-category-title">DevOps & Automation</div>
+        <ul class="skill-list">
+          <li>Terraform — modular IaC across 10 configuration files</li>
+          <li>Jenkins declarative pipelines (Groovy)</li>
+          <li>GitHub Actions workflow authoring (YAML)</li>
+          <li>Docker multi-stage builds and container orchestration</li>
+          <li>GitHub webhook integration</li>
+          <li>OIDC-based credential-free AWS authentication</li>
+          <li>Git history rewriting with filter-branch</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <div class="skill-category-title">Operations & Reliability</div>
+        <ul class="skill-list">
+          <li>Load testing with siege (250 concurrent users)</li>
+          <li>ECS auto scaling policy configuration</li>
+          <li>CloudWatch monitoring and alarm validation</li>
+          <li>Container permission and networking troubleshooting</li>
+          <li>SSH key management and EC2 access</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <div class="skill-category-title">Development & Tooling</div>
+        <ul class="skill-list">
+          <li>Node.js / React / Express application setup</li>
+          <li>CORS configuration between services</li>
+          <li>AWS CLI for resource management and verification</li>
+          <li>Linux system administration (Amazon Linux, Ubuntu)</li>
+          <li>Git branching strategy (main + gitops branches)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAD TEST METRICS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Load Test Results</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="metrics-card">
+      <div class="metric">
+        <div class="metric-value" style="color: var(--accent3);">99.86<span style="font-size:1.4rem">%</span></div>
+        <div class="metric-label">Availability</div>
+        <div class="metric-sub">250 concurrent users / 2 min</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" style="color: var(--accent);">16,334</div>
+        <div class="metric-label">Transactions</div>
+        <div class="metric-sub">23 failed (0.14%)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" style="color: var(--accent2);">141<span style="font-size:1.4rem">/s</span></div>
+        <div class="metric-label">Throughput</div>
+        <div class="metric-sub">transactions per second</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-text">
+      github.com/leyder-ben/leyder_1pu-tc1 &nbsp;·&nbsp; AWS us-east-2 &nbsp;·&nbsp; May 2026
+    </div>
+    <div class="footer-links">
+      <a class="footer-link" href="https://github.com/leyder-ben">GitHub</a>
+      <a class="footer-link" href="https://www.linkedin.com/in/ben-leyder-a79550141/">LinkedIn</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
