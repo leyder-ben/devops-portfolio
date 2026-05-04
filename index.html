@@ -1,792 +1,953 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ben Leyder – DevOps Portfolio</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0e1a;
-    --surface: #111827;
-    --surface2: #1a2235;
-    --border: #1e2d45;
-    --accent: #38bdf8;
-    --accent2: #818cf8;
-    --accent3: #34d399;
-    --text: #e2e8f0;
-    --muted: #64748b;
-    --highlight: #f59e0b;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ben Leyder — DevOps & Cloud Engineering Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:       #0a1520;
+      --bg-card:  #0f1e2e;
+      --bg-hover: #152540;
+      --blue:     #2d7dd2;
+      --blue-lt:  #5ba4e5;
+      --teal:     #00c9a7;
+      --teal-dim: rgba(0,201,167,0.08);
+      --white:    #eef2f7;
+      --gray:     #7a96b0;
+      --border:   #1a2e42;
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+    }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    font-weight: 300;
-    line-height: 1.7;
-    overflow-x: hidden;
-  }
+    html { scroll-behavior: smooth; }
 
-  /* Animated background grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-    pointer-events: none;
-    z-index: 0;
-  }
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
 
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    position: relative;
-    z-index: 1;
-  }
+    /* Subtle dot grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #1a3050 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  /* ── HERO ── */
-  .hero {
-    padding: 5rem 0 3rem;
-    position: relative;
-  }
+    /* Ambient glow */
+    .glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 {
+      width: 500px; height: 500px;
+      background: rgba(45,125,210,0.07);
+      top: -100px; left: -100px;
+    }
+    .glow-2 {
+      width: 400px; height: 400px;
+      background: rgba(0,201,167,0.05);
+      bottom: 10%; right: -80px;
+    }
 
-  .hero-eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--accent);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.1s;
-  }
+    /* ── LAYOUT ── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
 
-  .hero-eyebrow::before {
-    content: '> ';
-    color: var(--accent3);
-  }
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 2.5rem;
+      background: rgba(10, 21, 32, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
 
-  .hero h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(2.8rem, 6vw, 4.5rem);
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.2s;
-  }
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      text-decoration: none;
+    }
 
-  .hero h1 em {
-    font-style: italic;
-    color: var(--accent);
-  }
+    .nav-links {
+      display: flex;
+      gap: 0.5rem;
+      list-style: none;
+    }
 
-  .hero-desc {
-    font-size: 1.1rem;
-    color: #94a3b8;
-    max-width: 620px;
-    margin-bottom: 2.5rem;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.3s;
-  }
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--gray);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      padding: 0.35rem 0.75rem;
+      border-radius: 3px;
+      transition: color 0.2s, background 0.2s;
+    }
 
-  .tag-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 3rem;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.4s;
-  }
+    .nav-links a:hover {
+      color: var(--teal);
+      background: var(--teal-dim);
+    }
 
-  .tag {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    padding: 0.3rem 0.75rem;
-    border-radius: 2px;
-    border: 1px solid;
-    letter-spacing: 0.05em;
-  }
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 5rem;
+    }
 
-  .tag-blue { border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,0.06); }
-  .tag-purple { border-color: var(--accent2); color: var(--accent2); background: rgba(129,140,248,0.06); }
-  .tag-green { border-color: var(--accent3); color: var(--accent3); background: rgba(52,211,153,0.06); }
-  .tag-amber { border-color: var(--highlight); color: var(--highlight); background: rgba(245,158,11,0.06); }
+    .hero-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.1s;
+    }
 
-  /* ── STAT BAR ── */
-  .stat-bar {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    margin-bottom: 5rem;
-    overflow: hidden;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards 0.5s;
-  }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: pulse 2s ease-in-out infinite;
+    }
 
-  .stat-item {
-    background: var(--surface);
-    padding: 1.25rem 1.5rem;
-    text-align: center;
-  }
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 8vw, 6.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.25s;
+    }
 
-  .stat-value {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2rem;
-    color: var(--accent);
-    display: block;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-  }
+    .hero-role {
+      font-family: var(--font-mono);
+      font-size: clamp(0.85rem, 1.5vw, 1rem);
+      color: var(--blue-lt);
+      letter-spacing: 0.08em;
+      margin-bottom: 1.75rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.4s;
+    }
 
-  .stat-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
+    .hero-bio {
+      font-size: 1rem;
+      color: var(--gray);
+      max-width: 520px;
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.55s;
+    }
 
-  /* ── SECTION HEADERS ── */
-  .section {
-    margin-bottom: 4rem;
-    opacity: 0;
-    animation: fadeUp 0.7s ease forwards;
-  }
+    .hero-links {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.7s;
+    }
 
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
 
-  .section-num {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--accent);
-    opacity: 0.6;
-  }
+    .link-btn-primary {
+      background: var(--teal);
+      color: var(--bg);
+      font-weight: 500;
+    }
 
-  .section-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.6rem;
-    color: var(--text);
-  }
+    .link-btn-primary:hover {
+      background: #00e0bc;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,201,167,0.25);
+    }
 
-  .section-line {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
+    .link-btn-ghost {
+      background: transparent;
+      color: var(--gray);
+      border: 1px solid var(--border);
+    }
 
-  /* ── ARCH DIAGRAM ── */
-  .arch-diagram {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.78rem;
-    line-height: 2;
-    color: #94a3b8;
-    overflow-x: auto;
-  }
+    .link-btn-ghost:hover {
+      border-color: var(--blue);
+      color: var(--blue-lt);
+      transform: translateY(-2px);
+    }
 
-  .arch-diagram .node { color: var(--accent); font-weight: 500; }
-  .arch-diagram .arrow { color: var(--muted); }
-  .arch-diagram .label { color: var(--accent3); }
-  .arch-diagram .note { color: var(--accent2); }
+    /* scroll hint */
+    .scroll-hint {
+      margin-top: 4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--border);
+      letter-spacing: 0.1em;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 1s;
+    }
 
-  /* ── PHASE CARDS ── */
-  .phase-grid {
-    display: grid;
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-  }
+    .scroll-line {
+      width: 36px; height: 1px;
+      background: var(--border);
+      overflow: hidden;
+      position: relative;
+    }
 
-  .phase-card {
-    background: var(--surface);
-    padding: 1.5rem 2rem;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 1.5rem;
-    align-items: start;
-    transition: background 0.2s;
-  }
+    .scroll-line::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: var(--teal);
+      animation: linePulse 2.5s ease-in-out infinite 1.5s;
+    }
 
-  .phase-card:hover { background: var(--surface2); }
+    /* ── DIVIDER ── */
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+    }
 
-  .phase-num {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--accent);
-    opacity: 0.5;
-    padding-top: 0.2rem;
-    white-space: nowrap;
-  }
+    /* ── SECTION ── */
+    section { padding: 5.5rem 0; }
 
-  .phase-title {
-    font-weight: 500;
-    font-size: 0.95rem;
-    margin-bottom: 0.4rem;
-    color: var(--text);
-  }
+    .sec-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--teal);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
 
-  .phase-body {
-    font-size: 0.875rem;
-    color: #94a3b8;
-    line-height: 1.6;
-  }
+    .sec-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
 
-  .phase-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin-top: 0.6rem;
-  }
+    .sec-desc {
+      color: var(--gray);
+      font-size: 0.92rem;
+      max-width: 520px;
+      margin-bottom: 3rem;
+    }
 
-  .phase-tag {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
-    padding: 0.15rem 0.5rem;
-    background: rgba(56,189,248,0.08);
-    border: 1px solid rgba(56,189,248,0.2);
-    color: var(--accent);
-    border-radius: 2px;
-  }
+    /* ── PROJECT CARDS ── */
+    .projects { display: flex; flex-direction: column; gap: 1.5rem; }
 
-  /* ── SKILLS MATRIX ── */
-  .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-  }
+    .project-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.25s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
 
-  .skill-category {
-    background: var(--surface);
-    padding: 1.5rem 2rem;
-  }
+    .project-card:hover {
+      border-color: var(--blue);
+      transform: translateY(-3px);
+    }
 
-  .skill-category-title {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--accent2);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-  }
+    .project-card:hover .card-arrow { transform: translateX(4px); color: var(--teal); }
 
-  .skill-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
+    .card-top {
+      padding: 2rem 2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
 
-  .skill-list li {
-    font-size: 0.875rem;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
 
-  .skill-list li::before {
-    content: '▸';
-    color: var(--accent3);
-    font-size: 0.7rem;
-    flex-shrink: 0;
-  }
+    .card-num {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+    }
 
-  /* ── METRICS ── */
-  .metrics-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2rem;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-  }
+    .card-date {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--gray);
+      letter-spacing: 0.06em;
+    }
 
-  .metric {
-    text-align: center;
-  }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
 
-  .metric-value {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2.4rem;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-  }
+    .card-arrow {
+      font-size: 1.1rem;
+      color: var(--gray);
+      transition: transform 0.2s, color 0.2s;
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
 
-  .metric-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--gray);
+      line-height: 1.65;
+      max-width: 680px;
+    }
 
-  .metric-sub {
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-top: 0.25rem;
-  }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 1.25rem 2rem;
+    }
 
-  /* ── HIGHLIGHT CALLOUT ── */
-  .callout {
-    border-left: 3px solid var(--accent3);
-    background: rgba(52,211,153,0.05);
-    padding: 1.25rem 1.5rem;
-    border-radius: 0 4px 4px 0;
-    margin: 1.5rem 0;
-    font-size: 0.9rem;
-    color: #94a3b8;
-  }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--gray);
+      border: 1px solid var(--border);
+      padding: 0.18rem 0.55rem;
+      border-radius: 2px;
+      letter-spacing: 0.06em;
+      transition: border-color 0.2s, color 0.2s;
+    }
 
-  .callout strong { color: var(--accent3); font-weight: 500; }
+    .project-card:hover .tag {
+      border-color: #1e3558;
+      color: var(--blue-lt);
+    }
 
-  /* ── PROBLEM/SOLUTION PAIRS ── */
-  .ps-pair {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-  }
+    .card-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--border);
+    }
 
-  .ps-problem {
-    padding: 1rem 1.5rem;
-    background: rgba(239,68,68,0.04);
-    border-bottom: 1px solid var(--border);
-    font-size: 0.875rem;
-    color: #94a3b8;
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
+    .stat {
+      padding: 1.1rem 1.5rem;
+      border-right: 1px solid var(--border);
+    }
 
-  .ps-problem-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
-    color: #f87171;
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.2);
-    padding: 0.15rem 0.4rem;
-    border-radius: 2px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-  }
+    .stat:last-child { border-right: none; }
 
-  .ps-solution {
-    padding: 1rem 1.5rem;
-    font-size: 0.875rem;
-    color: #94a3b8;
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
 
-  .ps-solution-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
-    color: var(--accent3);
-    background: rgba(52,211,153,0.1);
-    border: 1px solid rgba(52,211,153,0.2);
-    padding: 0.15rem 0.4rem;
-    border-radius: 2px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-  }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--gray);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-  /* ── FOOTER ── */
-  .footer {
-    border-top: 1px solid var(--border);
-    padding: 3rem 0;
-    margin-top: 2rem;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 2rem;
-  }
+    /* ── SKILLS ── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
 
-  .footer-text {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
+    .skill-group {
+      background: var(--bg-card);
+      padding: 1.75rem;
+      transition: background 0.2s;
+    }
 
-  .footer-links {
-    display: flex;
-    gap: 1.5rem;
-  }
+    .skill-group:hover { background: var(--bg-hover); }
 
-  .footer-link {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--accent);
-    text-decoration: none;
-    letter-spacing: 0.05em;
-    transition: color 0.2s;
-  }
+    .skill-group-title {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
 
-  .footer-link:hover { color: var(--text); }
+    .skill-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
 
-  /* ── ANIMATIONS ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+    .skill-list li {
+      font-size: 0.85rem;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-  .section:nth-child(1) { animation-delay: 0.5s; }
-  .section:nth-child(2) { animation-delay: 0.6s; }
-  .section:nth-child(3) { animation-delay: 0.7s; }
-  .section:nth-child(4) { animation-delay: 0.8s; }
-  .section:nth-child(5) { animation-delay: 0.9s; }
+    .skill-list li::before {
+      content: '';
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--blue);
+      flex-shrink: 0;
+    }
 
-  /* ── PRINT / EXPORT ── */
-  @media print {
-    body { background: white; color: #111; }
-    body::before { display: none; }
-  }
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.8fr;
+      gap: 3.5rem;
+      align-items: start;
+    }
 
-  @media (max-width: 600px) {
-    .stat-bar { grid-template-columns: repeat(2, 1fr); }
-    .skills-grid { grid-template-columns: 1fr; }
-    .metrics-card { grid-template-columns: 1fr; }
-    .footer { grid-template-columns: 1fr; }
-  }
-</style>
+    .about-sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      position: sticky;
+      top: 5rem;
+    }
+
+    .about-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.2rem;
+    }
+
+    .about-title {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+    }
+
+    .about-hr { height: 1px; background: var(--border); margin: 1.25rem 0; }
+
+    .about-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+    }
+
+    .about-key {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--gray);
+      letter-spacing: 0.06em;
+    }
+
+    .about-val {
+      font-size: 0.82rem;
+      color: var(--white);
+    }
+
+    .about-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .about-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--gray);
+      text-decoration: none;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      letter-spacing: 0.06em;
+      transition: all 0.2s;
+    }
+
+    .about-link:hover {
+      color: var(--teal);
+      border-color: var(--teal);
+      background: var(--teal-dim);
+    }
+
+    .about-content p {
+      font-size: 0.93rem;
+      color: var(--gray);
+      margin-bottom: 1.1rem;
+      line-height: 1.75;
+    }
+
+    .about-content p:last-child { margin-bottom: 0; }
+
+    .about-content strong { color: var(--white); font-weight: 500; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--gray);
+      letter-spacing: 0.06em;
+    }
+
+    .footer-made {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--border);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    @keyframes linePulse {
+      0%   { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.25rem; }
+      .card-stats { grid-template-columns: repeat(2, 1fr); }
+      .skills-grid { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; }
+      .about-sidebar { position: static; }
+      .footer-inner { flex-direction: column; gap: 0.5rem; }
+    }
+
+    @media (max-width: 500px) {
+      .card-stats { grid-template-columns: 1fr 1fr; }
+      .hero-links { flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">// LEYDER-BEN</a>
+    <ul class="nav-links">
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="https://github.com/leyder-ben" target="_blank">GitHub ↗</a></li>
+    </ul>
+  </nav>
 
   <!-- HERO -->
-  <div class="hero">
-    <div class="hero-eyebrow">portfolio / devops / cloud infrastructure</div>
-    <h1>End-to-End Cloud<br>Deployment on <em>AWS ECS</em></h1>
-    <p class="hero-desc">
-      Provisioned a production-grade containerized application on AWS Fargate with full CI/CD automation, infrastructure as code, and GitOps — built from scratch in under 72 hours.
-    </p>
-    <div class="tag-row">
-      <span class="tag tag-blue">AWS ECS Fargate</span>
-      <span class="tag tag-blue">Terraform</span>
-      <span class="tag tag-blue">Docker</span>
-      <span class="tag tag-purple">Jenkins</span>
-      <span class="tag tag-purple">GitHub Actions</span>
-      <span class="tag tag-green">CI/CD</span>
-      <span class="tag tag-green">GitOps</span>
-      <span class="tag tag-amber">ECR</span>
-      <span class="tag tag-amber">ALB</span>
-      <span class="tag tag-amber">CloudWatch</span>
-    </div>
+  <div class="wrapper">
+    <section class="hero">
+      <div class="hero-status">
+        <span class="status-dot"></span>
+        OPEN TO NEW ROLES
+      </div>
+      <h1 class="hero-name">Ben<br>Leyder</h1>
+      <p class="hero-role">// CLOUD & DEVOPS ENGINEER</p>
+      <p class="hero-bio">
+        Cloud & DevOps Engineer working across the full infrastructure stack — AWS, Terraform, Docker, CI/CD pipelines. I build systems that are reliable, automated, and production-ready.
+      </p>
+      <div class="hero-links">
+        <a href="#projects" class="link-btn link-btn-primary">View Projects ↓</a>
+        <a href="https://github.com/leyder-ben" target="_blank" class="link-btn link-btn-ghost">GitHub</a>
+        <a href="https://www.linkedin.com/in/ben-leyder-a79550141/" target="_blank" class="link-btn link-btn-ghost">LinkedIn</a>
+      </div>
+      <div class="scroll-hint">
+        <span class="scroll-line"></span>
+        SCROLL
+      </div>
+    </section>
   </div>
 
-  <!-- STAT BAR -->
-  <div class="stat-bar">
-    <div class="stat-item">
-      <span class="stat-value">45</span>
-      <span class="stat-label">AWS Resources<br>Provisioned</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-value">99.9<span style="font-size:1.2rem">%</span></span>
-      <span class="stat-label">Availability<br>Under Load</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-value">2</span>
-      <span class="stat-label">CI/CD Pipelines<br>Implemented</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-value">32<span style="font-size:1.2rem">s</span></span>
-      <span class="stat-label">Pipeline Build<br>Duration</span>
-    </div>
+  <div class="divider"></div>
+
+  <!-- PROJECTS -->
+  <div class="wrapper" id="projects">
+    <section>
+      <p class="sec-label reveal">// Projects</p>
+      <h2 class="sec-title reveal">Work that ships.</h2>
+      <p class="sec-desc reveal">Real deployments. Real problems solved. Every project here was built end-to-end from scratch.</p>
+
+      <div class="projects">
+
+        <!-- PROJECT 1: DevOps Challenge -->
+        <a class="project-card reveal" href="./devops-challenge/">
+          <div class="card-top">
+            <div class="card-meta">
+              <span class="card-num">PROJECT // 01</span>
+              <span class="card-date">MAY 2026</span>
+            </div>
+            <div class="card-title">
+              End-to-End Cloud Deployment on AWS ECS
+              <span class="card-arrow">↗</span>
+            </div>
+            <p class="card-desc">
+              Provisioned a production-grade containerized application on AWS Fargate with full CI/CD automation, infrastructure as code, and GitOps — built from scratch in under 72 hours. Two parallel pipelines, 45 AWS resources, load tested at 250 concurrent users.
+            </p>
+          </div>
+          <div class="card-tags">
+            <span class="tag">AWS ECS Fargate</span>
+            <span class="tag">Terraform</span>
+            <span class="tag">Docker</span>
+            <span class="tag">Jenkins</span>
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">GitOps</span>
+            <span class="tag">ECR</span>
+            <span class="tag">ALB</span>
+            <span class="tag">CloudWatch</span>
+            <span class="tag">OIDC</span>
+            <span class="tag">VPC</span>
+            <span class="tag">IAM</span>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-value">45</div>
+              <div class="stat-label">AWS Resources</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">99.9%</div>
+              <div class="stat-label">Availability</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">2</div>
+              <div class="stat-label">CI/CD Pipelines</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">72h</div>
+              <div class="stat-label">Build Time</div>
+            </div>
+          </div>
+        </a>
+
+        <!-- PROJECT 2: Cloud Engineering Report -->
+        <a class="project-card reveal" href="./cloud-report/">
+          <div class="card-top">
+            <div class="card-meta">
+              <span class="card-num">PROJECT // 02</span>
+              <span class="card-date">MAY 2026</span>
+            </div>
+            <div class="card-title">
+              Finding Solutions for Cloud Engineering Problems
+              <span class="card-arrow">↗</span>
+            </div>
+            <p class="card-desc">
+              A strategic analysis of five core challenges facing small cloud engineering teams — data source variability, proactive monitoring, resource constraints, documentation gaps, and CI/CD adoption. Grounded in AWS tooling with practical, business-aware solutions for each.
+            </p>
+          </div>
+          <div class="card-tags">
+            <span class="tag">AWS CloudWatch</span>
+            <span class="tag">CloudTrail</span>
+            <span class="tag">Trusted Advisor</span>
+            <span class="tag">Terraform</span>
+            <span class="tag">Ansible</span>
+            <span class="tag">Kubernetes</span>
+            <span class="tag">Jenkins</span>
+            <span class="tag">GitOps / Argo CD</span>
+            <span class="tag">JSON</span>
+            <span class="tag">CI/CD</span>
+            <span class="tag">IaC</span>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-value">5</div>
+              <div class="stat-label">Problems Analyzed</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">12+</div>
+              <div class="stat-label">Tools Covered</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">3</div>
+              <div class="stat-label">Deliverables</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">AWS</div>
+              <div class="stat-label">Platform</div>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
   </div>
 
-  <!-- ARCHITECTURE -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">01</span>
-      <h2 class="section-title">Architecture</h2>
-      <div class="section-line"></div>
-    </div>
-
-    <div class="arch-diagram">
-<span class="label">Developer Push</span>
-    <span class="arrow">──────────────────────────────────────────────────────</span>
-    │
-    ▼
-<span class="node">GitHub (main branch)</span>   <span class="arrow">──webhook──▶</span>   <span class="node">Jenkins EC2</span> <span class="note">(t3.small / Amazon Linux 2023)</span>
-<span class="node">GitHub (gitops branch)</span>  <span class="arrow">──OIDC──────▶</span>  <span class="node">GitHub Actions</span> <span class="note">(ubuntu-latest runner)</span>
-    │                                          │
-    └──────────────── both pipelines ──────────┘
-                            │
-              <span class="arrow">┌─────────────┼─────────────┐</span>
-              ▼             ▼             ▼
-        <span class="node">docker build</span>   <span class="node">ECR push</span>    <span class="node">ECS update</span>
-              │             │             │
-              └─────────────┴─────────────┘
-                            │
-                            ▼
-            <span class="node">ALB</span> <span class="note">(Application Load Balancer)</span>
-              <span class="arrow">├── /      ──▶</span> <span class="node">ECS Frontend Service</span> <span class="note">(React / Fargate)</span>
-              <span class="arrow">└── /api/* ──▶</span> <span class="node">ECS Backend Service</span>  <span class="note">(Express / Fargate)</span>
-    </div>
-
-    <div class="callout">
-      <strong>Key design decision:</strong> Both services run in private subnets with no public IP. All traffic enters through the ALB in the public subnet, which handles path-based routing between frontend and backend — a pattern that mirrors production-grade architectures.
-    </div>
-  </div>
-
-  <!-- WHAT I BUILT -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">02</span>
-      <h2 class="section-title">What I Built</h2>
-      <div class="section-line"></div>
-    </div>
-
-    <div class="phase-grid">
-      <div class="phase-card">
-        <span class="phase-num">01</span>
-        <div>
-          <div class="phase-title">Infrastructure as Code — Terraform</div>
-          <div class="phase-body">Wrote ten modular Terraform files provisioning a complete AWS environment: custom VPC with public/private subnets across two AZs, NAT gateway, internet gateway, ALB with path-based routing, ECS cluster, Fargate task definitions, ECR repositories with lifecycle policies, IAM roles, security groups, and a Jenkins EC2 instance with Elastic IP.</div>
-          <div class="phase-tags">
-            <span class="phase-tag">terraform</span>
-            <span class="phase-tag">vpc</span>
-            <span class="phase-tag">ecs fargate</span>
-            <span class="phase-tag">iam</span>
-            <span class="phase-tag">ecr</span>
-            <span class="phase-tag">alb</span>
-          </div>
-        </div>
-      </div>
-      <div class="phase-card">
-        <span class="phase-num">02</span>
-        <div>
-          <div class="phase-title">Containerization — Docker</div>
-          <div class="phase-body">Containerized a React frontend and Express backend with separate Dockerfiles. Debugged a Node.js version compatibility issue where Node 18 broke the React build due to a postcss-safe-parser incompatibility — resolved by pinning to Node 16, which matched the project's lockfile.</div>
-          <div class="phase-tags">
-            <span class="phase-tag">docker</span>
-            <span class="phase-tag">node.js</span>
-            <span class="phase-tag">react</span>
-            <span class="phase-tag">express</span>
-          </div>
-        </div>
-      </div>
-      <div class="phase-card">
-        <span class="phase-num">03</span>
-        <div>
-          <div class="phase-title">Jenkins CI/CD Pipeline</div>
-          <div class="phase-body">Deployed Jenkins as a Docker container on an EC2 instance with Docker-in-Docker support. Wrote a declarative Jenkinsfile with five stages: checkout, Docker build, ECR authentication, image push, and ECS service update. Configured GitHub webhook for automatic pipeline triggers on every push.</div>
-          <div class="phase-tags">
-            <span class="phase-tag">jenkins</span>
-            <span class="phase-tag">groovy</span>
-            <span class="phase-tag">webhooks</span>
-            <span class="phase-tag">ecr auth</span>
-          </div>
-        </div>
-      </div>
-      <div class="phase-card">
-        <span class="phase-num">04</span>
-        <div>
-          <div class="phase-title">GitOps with GitHub Actions & OIDC</div>
-          <div class="phase-body">Implemented a parallel GitOps deployment workflow on a separate branch using GitHub Actions. Configured AWS OIDC identity federation so the pipeline authenticates using short-lived tokens rather than stored credentials — a more secure pattern than traditional access key injection.</div>
-          <div class="phase-tags">
-            <span class="phase-tag">github actions</span>
-            <span class="phase-tag">oidc</span>
-            <span class="phase-tag">iam roles</span>
-            <span class="phase-tag">zero secrets</span>
-          </div>
-        </div>
-      </div>
-      <div class="phase-card">
-        <span class="phase-num">05</span>
-        <div>
-          <div class="phase-title">Auto Scaling & Load Testing</div>
-          <div class="phase-body">Configured CPU-based auto scaling for both ECS services (min 1, max 4 tasks, 50% CPU threshold). Validated with a siege load test at 250 concurrent users for 2 minutes, achieving 99.86% availability and 141 transactions/second. Verified CloudWatch scale-in and scale-out alarms.</div>
-          <div class="phase-tags">
-            <span class="phase-tag">auto scaling</span>
-            <span class="phase-tag">cloudwatch</span>
-            <span class="phase-tag">siege</span>
-            <span class="phase-tag">load testing</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PROBLEMS SOLVED -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">03</span>
-      <h2 class="section-title">Problems I Solved</h2>
-      <div class="section-line"></div>
-    </div>
-
-    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Real-world troubleshooting is where engineering skill shows. Here's what I ran into and how I resolved it.</p>
-
-    <div class="ps-pair">
-      <div class="ps-problem">
-        <span class="ps-problem-label">ISSUE</span>
-        GitHub rejected a push due to a 685MB Terraform provider binary tracked in git history — even after deleting the folder locally.
-      </div>
-      <div class="ps-solution">
-        <span class="ps-solution-label">RESOLVED</span>
-        Used git filter-branch to rewrite commit history and permanently remove the binary. Updated .gitignore with **/.terraform/ and force-pushed the cleaned history.
-      </div>
-    </div>
-
-    <div class="ps-pair">
-      <div class="ps-problem">
-        <span class="ps-problem-label">ISSUE</span>
-        Jenkins pipeline SSH connection to GitHub failed with "Host key verification failed" — the server had never connected to GitHub before.
-      </div>
-      <div class="ps-solution">
-        <span class="ps-solution-label">RESOLVED</span>
-        Switched repository URL from SSH to HTTPS. PAT token credentials handle authentication cleanly over HTTPS without requiring pre-established host keys.
-      </div>
-    </div>
-
-    <div class="ps-pair">
-      <div class="ps-problem">
-        <span class="ps-problem-label">ISSUE</span>
-        Jenkins container exited immediately with volume permission errors on /var/jenkins_home — Docker created the directory as root before Jenkins could write to it.
-      </div>
-      <div class="ps-solution">
-        <span class="ps-solution-label">RESOLVED</span>
-        Pre-created the directory and set ownership to UID 1000 (the Jenkins container user) before starting the container: sudo chown -R 1000:1000 /var/jenkins_home.
-      </div>
-    </div>
-
-    <div class="ps-pair">
-      <div class="ps-problem">
-        <span class="ps-problem-label">ISSUE</span>
-        React build failed inside Docker with ERR_PACKAGE_PATH_NOT_EXPORTED from postcss-safe-parser when using Node 18 as specified in the docs.
-      </div>
-      <div class="ps-solution">
-        <span class="ps-solution-label">RESOLVED</span>
-        Identified the root cause as a Node 18 incompatibility with older postcss dependencies. Pinned the frontend Dockerfile to Node 16 to match the project's package lockfile.
-      </div>
-    </div>
-  </div>
+  <div class="divider"></div>
 
   <!-- SKILLS -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">04</span>
-      <h2 class="section-title">Skills Demonstrated</h2>
-      <div class="section-line"></div>
-    </div>
+  <div class="wrapper" id="skills">
+    <section>
+      <p class="sec-label reveal">// Skills</p>
+      <h2 class="sec-title reveal">Technical foundation.</h2>
+      <p class="sec-desc reveal">Built through hands-on deployment, not just coursework.</p>
 
-    <div class="skills-grid">
-      <div class="skill-category">
-        <div class="skill-category-title">Cloud & Infrastructure</div>
-        <ul class="skill-list">
-          <li>AWS ECS Fargate (task definitions, services, auto scaling)</li>
-          <li>Application Load Balancer with path-based routing</li>
-          <li>VPC design with public/private subnet architecture</li>
-          <li>ECR with lifecycle policies</li>
-          <li>IAM roles, policies, and OIDC federation</li>
-          <li>CloudWatch alarms and log groups</li>
-          <li>NAT Gateway and Internet Gateway configuration</li>
-        </ul>
+      <div class="skills-grid reveal">
+        <div class="skill-group">
+          <div class="skill-group-title">Cloud & Infrastructure</div>
+          <ul class="skill-list">
+            <li>AWS ECS Fargate</li>
+            <li>VPC, Subnets, NAT Gateway</li>
+            <li>Application Load Balancer</li>
+            <li>ECR, IAM, CloudWatch</li>
+            <li>EC2, RDS, S3</li>
+            <li>AWS Trusted Advisor</li>
+          </ul>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-title">DevOps & Automation</div>
+          <ul class="skill-list">
+            <li>Terraform (IaC)</li>
+            <li>Ansible</li>
+            <li>Jenkins Declarative Pipelines</li>
+            <li>GitHub Actions / OIDC</li>
+            <li>GitOps / Argo CD</li>
+            <li>Kubernetes</li>
+          </ul>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-title">Containers & CI/CD</div>
+          <ul class="skill-list">
+            <li>Docker & Dockerfiles</li>
+            <li>Docker-in-Docker (DinD)</li>
+            <li>Multi-stage builds</li>
+            <li>CI/CD pipeline design</li>
+            <li>Webhook automation</li>
+            <li>Zero-secret auth (OIDC)</li>
+          </ul>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-title">Monitoring & Reliability</div>
+          <ul class="skill-list">
+            <li>CloudWatch alarms & logs</li>
+            <li>CloudTrail auditing</li>
+            <li>ECS auto scaling</li>
+            <li>Load testing (siege)</li>
+            <li>Proactive vs reactive monitoring</li>
+            <li>Incident post-mortems</li>
+          </ul>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-title">Architecture & Design</div>
+          <ul class="skill-list">
+            <li>Public/private subnet design</li>
+            <li>Path-based ALB routing</li>
+            <li>Data format standardization</li>
+            <li>Fault tolerance principles</li>
+            <li>Cross-training & redundancy</li>
+            <li>Documentation strategy</li>
+          </ul>
+        </div>
+        <div class="skill-group">
+          <div class="skill-group-title">Development & Tooling</div>
+          <ul class="skill-list">
+            <li>Node.js / React / Express</li>
+            <li>AWS CLI</li>
+            <li>Git & GitHub</li>
+            <li>Linux system administration</li>
+            <li>JSON / REST APIs</li>
+            <li>Groovy (Jenkinsfile)</li>
+          </ul>
+        </div>
       </div>
-      <div class="skill-category">
-        <div class="skill-category-title">DevOps & Automation</div>
-        <ul class="skill-list">
-          <li>Terraform — modular IaC across 10 configuration files</li>
-          <li>Jenkins declarative pipelines (Groovy)</li>
-          <li>GitHub Actions workflow authoring (YAML)</li>
-          <li>Docker multi-stage builds and container orchestration</li>
-          <li>GitHub webhook integration</li>
-          <li>OIDC-based credential-free AWS authentication</li>
-          <li>Git history rewriting with filter-branch</li>
-        </ul>
-      </div>
-      <div class="skill-category">
-        <div class="skill-category-title">Operations & Reliability</div>
-        <ul class="skill-list">
-          <li>Load testing with siege (250 concurrent users)</li>
-          <li>ECS auto scaling policy configuration</li>
-          <li>CloudWatch monitoring and alarm validation</li>
-          <li>Container permission and networking troubleshooting</li>
-          <li>SSH key management and EC2 access</li>
-        </ul>
-      </div>
-      <div class="skill-category">
-        <div class="skill-category-title">Development & Tooling</div>
-        <ul class="skill-list">
-          <li>Node.js / React / Express application setup</li>
-          <li>CORS configuration between services</li>
-          <li>AWS CLI for resource management and verification</li>
-          <li>Linux system administration (Amazon Linux, Ubuntu)</li>
-          <li>Git branching strategy (main + gitops branches)</li>
-        </ul>
-      </div>
-    </div>
+    </section>
   </div>
 
-  <!-- LOAD TEST METRICS -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-num">05</span>
-      <h2 class="section-title">Load Test Results</h2>
-      <div class="section-line"></div>
-    </div>
+  <div class="divider"></div>
 
-    <div class="metrics-card">
-      <div class="metric">
-        <div class="metric-value" style="color: var(--accent3);">99.86<span style="font-size:1.4rem">%</span></div>
-        <div class="metric-label">Availability</div>
-        <div class="metric-sub">250 concurrent users / 2 min</div>
+  <!-- ABOUT -->
+  <div class="wrapper" id="about">
+    <section>
+      <p class="sec-label reveal">// About</p>
+      <h2 class="sec-title reveal">Who's building this.</h2>
+
+      <div class="about-grid">
+        <div class="about-sidebar reveal">
+          <div class="about-name">Ben Leyder</div>
+          <div class="about-title">// CLOUD & DEVOPS ENGINEER</div>
+          <div class="about-hr"></div>
+          <div class="about-row">
+            <span class="about-key">LOCATION</span>
+            <span class="about-val">Indiana, US</span>
+          </div>
+          <div class="about-row">
+            <span class="about-key">FOCUS</span>
+            <span class="about-val">AWS / DevOps / IaC</span>
+          </div>
+          <div class="about-row">
+            <span class="about-key">PROJECTS</span>
+            <span class="about-val">2 (and growing)</span>
+          </div>
+          <div class="about-row">
+            <span class="about-key">STATUS</span>
+            <span class="about-val" style="color: var(--teal);">Available</span>
+          </div>
+          <div class="about-hr"></div>
+          <div class="about-links">
+            <a href="https://github.com/leyder-ben" target="_blank" class="about-link">
+              ⌥ github.com/leyder-ben
+            </a>
+            <a href="https://www.linkedin.com/in/ben-leyder-a79550141/" target="_blank" class="about-link">
+              ⌥ linkedin.com/in/ben-leyder
+            </a>
+          </div>
+        </div>
+
+        <div class="about-content reveal">
+          <p>
+            I'm a Cloud & DevOps Engineer with a hands-on focus on AWS infrastructure, automation, and production-grade deployment patterns. My approach is straightforward: <strong>build real things</strong>, encounter real problems, and solve them — because that's where the actual learning happens.
+          </p>
+          <p>
+            My work spans the full infrastructure stack — from provisioning VPCs and ECS clusters with Terraform, to building parallel CI/CD pipelines with Jenkins and GitHub Actions, to containerizing applications with Docker and deploying them on AWS Fargate. My first featured project put 45 AWS resources into production in under 72 hours, including two independent deployment pipelines and a load-tested architecture that held 99.9% availability under 250 concurrent users.
+          </p>
+          <p>
+            Beyond deployment, I think deeply about <strong>why infrastructure succeeds or fails</strong> at an organizational level — not just the technical side. My second project is a strategic analysis of the five most common failure points in cloud engineering teams, grounded in AWS tooling and real-world change management. Understanding the human and process dimensions of engineering is what separates systems that hold up from ones that don't.
+          </p>
+          <p>
+            I work best in environments that value reliability, good engineering practice, and building things that actually run in production.
+          </p>
+        </div>
       </div>
-      <div class="metric">
-        <div class="metric-value" style="color: var(--accent);">16,334</div>
-        <div class="metric-label">Transactions</div>
-        <div class="metric-sub">23 failed (0.14%)</div>
-      </div>
-      <div class="metric">
-        <div class="metric-value" style="color: var(--accent2);">141<span style="font-size:1.4rem">/s</span></div>
-        <div class="metric-label">Throughput</div>
-        <div class="metric-sub">transactions per second</div>
-      </div>
-    </div>
+    </section>
   </div>
 
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-text">
-      github.com/leyder-ben/leyder_1pu-tc1 &nbsp;·&nbsp; AWS us-east-2 &nbsp;·&nbsp; May 2026
-    </div>
-    <div class="footer-links">
-      <a class="footer-link" href="https://github.com/leyder-ben">GitHub</a>
-      <a class="footer-link" href="https://www.linkedin.com/in/ben-leyder-a79550141/">LinkedIn</a>
-    </div>
+  <div class="divider"></div>
+
+  <div class="wrapper">
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-copy">BEN LEYDER &nbsp;·&nbsp; DEVOPS & CLOUD ENGINEERING</div>
+        <div class="footer-made">leyder-ben.github.io/devops-portfolio</div>
+      </div>
+    </footer>
   </div>
 
-</div>
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 3) * 0.1}s`;
+      observer.observe(el);
+    });
+
+    // Active nav link
+    window.addEventListener('scroll', () => {
+      let current = '';
+      document.querySelectorAll('[id]').forEach(el => {
+        if (window.scrollY >= el.offsetTop - 130) current = el.id;
+      });
+      document.querySelectorAll('.nav-links a').forEach(a => {
+        a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--teal)' : '';
+      });
+    });
+  </script>
 </body>
 </html>
