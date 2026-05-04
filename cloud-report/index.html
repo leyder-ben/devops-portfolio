@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud Engineering Solutions — Ben Leyder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:     #0d1b2e;
+      --navy-mid: #152540;
+      --navy-lt:  #1e3558;
+      --blue:     #2d7dd2;
+      --blue-lt:  #5ba4e5;
+      --teal:     #00c9a7;
+      --teal-dim: #00c9a720;
+      --white:    #f0f4f8;
+      --gray:     #8da4be;
+      --gray-dim: #8da4be18;
+      --border:   #1e3558;
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── GRID BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(13, 27, 46, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--gray);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--teal); }
+
+    /* ── WRAPPER ── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 5rem;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--teal);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.2s;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 7vw, 6rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.4s;
+    }
+
+    .hero-title span {
+      color: transparent;
+      -webkit-text-stroke: 1px var(--blue-lt);
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--gray);
+      max-width: 540px;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.6s;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.8s;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: var(--navy);
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: #00e0bc;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,201,167,0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--blue-lt);
+      border: 1px solid var(--blue);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-dim);
+      transform: translateY(-2px);
+    }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--gray);
+      letter-spacing: 0.1em;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 1.2s;
+    }
+
+    .scroll-line {
+      width: 40px;
+      height: 1px;
+      background: var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scroll-line::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--teal);
+      animation: scrollPulse 2s ease-in-out infinite 1.5s;
+    }
+
+    /* ── SECTION SHARED ── */
+    section {
+      padding: 6rem 0;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--teal);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .section-desc {
+      color: var(--gray);
+      max-width: 560px;
+      margin-bottom: 3.5rem;
+      font-size: 0.98rem;
+    }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin: 0;
+    }
+
+    /* ── OVERVIEW STRIP ── */
+    .overview-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 5rem;
+    }
+
+    .overview-item {
+      padding: 1.5rem 1.25rem;
+      border-right: 1px solid var(--border);
+      transition: background 0.2s;
+      cursor: default;
+    }
+
+    .overview-item:last-child { border-right: none; }
+
+    .overview-item:hover { background: var(--gray-dim); }
+
+    .overview-num {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      margin-bottom: 0.5rem;
+    }
+
+    .overview-label {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--white);
+    }
+
+    /* ── PROBLEM CARDS ── */
+    .problems-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .problem-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .problem-card:hover { border-color: var(--blue); }
+
+    .problem-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem;
+      cursor: pointer;
+      user-select: none;
+      background: var(--navy-mid);
+      transition: background 0.2s;
+    }
+
+    .problem-header:hover { background: var(--navy-lt); }
+
+    .problem-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+      min-width: 28px;
+    }
+
+    .problem-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .problem-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--gray);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      letter-spacing: 0.08em;
+    }
+
+    .problem-toggle {
+      font-size: 1.2rem;
+      color: var(--gray);
+      transition: transform 0.3s;
+      line-height: 1;
+    }
+
+    .problem-card.open .problem-toggle { transform: rotate(45deg); color: var(--teal); }
+    .problem-card.open { border-color: var(--blue); }
+    .problem-card.open .problem-header { background: var(--navy-lt); }
+
+    .problem-body {
+      display: none;
+      padding: 0 2rem 2rem;
+      background: var(--navy-mid);
+      border-top: 1px solid var(--border);
+    }
+
+    .problem-card.open .problem-body { display: block; }
+
+    .problem-intro {
+      color: var(--gray);
+      font-size: 0.95rem;
+      padding: 1.5rem 0 1.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .step-card {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px;
+      height: 100%;
+      background: var(--teal);
+    }
+
+    .step-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      color: var(--white);
+    }
+
+    .step-body {
+      font-size: 0.85rem;
+      color: var(--gray);
+      line-height: 1.65;
+    }
+
+    /* ── KEY INSIGHTS ── */
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .insight-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .insight-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--blue);
+    }
+
+    .insight-icon {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .insight-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .insight-body {
+      font-size: 0.85rem;
+      color: var(--gray);
+      line-height: 1.65;
+    }
+
+    /* ── TOOLS SECTION ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .tool-chip {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .tool-chip:hover {
+      border-color: var(--teal);
+      background: var(--teal-dim);
+    }
+
+    .tool-name {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    .tool-use {
+      font-size: 0.78rem;
+      color: var(--gray);
+    }
+
+    /* ── QUOTE ── */
+    .quote-block {
+      border-left: 2px solid var(--teal);
+      padding: 1.5rem 2rem;
+      background: var(--navy-mid);
+      border-radius: 0 6px 6px 0;
+      margin: 3rem 0;
+    }
+
+    .quote-text {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--white);
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .quote-source {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+      position: sticky;
+      top: 5rem;
+    }
+
+    .about-name {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 0.25rem;
+    }
+
+    .about-role {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+    }
+
+    .about-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+    }
+
+    .about-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      font-size: 0.85rem;
+    }
+
+    .about-stat-label {
+      color: var(--gray);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+    }
+
+    .about-stat-value {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    .about-text p {
+      color: var(--gray);
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .about-text p:last-child { margin-bottom: 0; }
+
+    .about-text strong {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--gray);
+      letter-spacing: 0.06em;
+    }
+
+    .footer-right {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--gray);
+    }
+
+    .footer-right a {
+      color: var(--teal);
+      text-decoration: none;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scrollPulse {
+      0%   { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .overview-strip { grid-template-columns: repeat(3, 1fr); }
+      .steps-grid { grid-template-columns: 1fr; }
+      .insights-grid { grid-template-columns: 1fr 1fr; }
+      .tools-grid { grid-template-columns: repeat(2, 1fr); }
+      .about-grid { grid-template-columns: 1fr; }
+      .about-card { position: static; }
+    }
+
+    @media (max-width: 600px) {
+      .overview-strip { grid-template-columns: 1fr 1fr; }
+      .insights-grid { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; }
+      .footer-inner { flex-direction: column; gap: 0.75rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">// BEN LEYDER</div>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#problems">Problems</a></li>
+      <li><a href="#insights">Insights</a></li>
+      <li><a href="#tools">Tools</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="wrapper">
+    <section class="hero">
+      <p class="hero-eyebrow">// Cloud Engineering Solutions Report</p>
+      <h1 class="hero-title">
+        Finding Solutions<br>
+        for <span>Cloud Engineering</span><br>
+        Problems
+      </h1>
+      <p class="hero-subtitle">
+        A strategic analysis of five core challenges facing small cloud engineering teams — with practical, tool-grounded solutions for each.
+      </p>
+      <div class="hero-cta">
+        <a href="#problems" class="btn btn-primary">Read the Report ↓</a>
+        <a href="#about" class="btn btn-secondary">About This Project</a>
+      </div>
+      <div class="scroll-hint">
+        <span class="scroll-line"></span>
+        SCROLL TO EXPLORE
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- OVERVIEW -->
+  <div class="wrapper" id="overview">
+    <section>
+      <p class="section-label reveal">// 01 — Overview</p>
+      <h2 class="section-title reveal">Five challenges.<br>Five solutions.</h2>
+      <p class="section-desc reveal">Small cloud engineering teams face unique pressure — limited headcount, tight budgets, and systems that demand constant attention. This report identifies the most common failure points and proposes concrete remedies.</p>
+
+      <div class="overview-strip reveal">
+        <div class="overview-item">
+          <div class="overview-num">01</div>
+          <div class="overview-label">Data Source Variability</div>
+        </div>
+        <div class="overview-item">
+          <div class="overview-num">02</div>
+          <div class="overview-label">Proactive Monitoring</div>
+        </div>
+        <div class="overview-item">
+          <div class="overview-num">03</div>
+          <div class="overview-label">Resource Constraints</div>
+        </div>
+        <div class="overview-item">
+          <div class="overview-num">04</div>
+          <div class="overview-label">Documentation & Guidance</div>
+        </div>
+        <div class="overview-item">
+          <div class="overview-num">05</div>
+          <div class="overview-label">CI/CD Integration</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- PROBLEMS -->
+  <div class="wrapper" id="problems">
+    <section>
+      <p class="section-label reveal">// 02 — Problems & Solutions</p>
+      <h2 class="section-title reveal">In-depth analysis</h2>
+      <p class="section-desc reveal">Click any problem to expand the full analysis and proposed solutions.</p>
+
+      <div class="problems-grid">
+
+        <!-- P1 -->
+        <div class="problem-card" onclick="toggleCard(this)">
+          <div class="problem-header">
+            <span class="problem-num">01</span>
+            <span class="problem-title">Data Source Variability</span>
+            <span class="problem-tag">STANDARDIZATION</span>
+            <span class="problem-toggle">+</span>
+          </div>
+          <div class="problem-body">
+            <p class="problem-intro">The team is using different data sources with various formats — causing data quality issues and pipeline complexity. Each additional format requires additional dependencies, and each dependency is a potential point of failure.</p>
+            <div class="steps-grid">
+              <div class="step-card">
+                <div class="step-label">Analysis</div>
+                <div class="step-title">The Cost of Format Fragmentation</div>
+                <div class="step-body">Different formats represent values like dates, times, and phone numbers differently — making consistent validation nearly impossible. Like UN diplomats relying on imperfect interpreters, pipelines forced to translate between formats are prone to misunderstanding and error. A single agreed-upon format removes the interpretation layer entirely.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Solution</div>
+                <div class="step-title">Standardize on JSON</div>
+                <div class="step-body">JSON is readable by both humans and machines, familiar to most developers, and natively supported by nearly all AWS services. This significantly reduces dependency complexity — only a small number of services would require any transformation layer. The standard pays for itself immediately in reduced maintenance burden.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Strategy</div>
+                <div class="step-title">Stakeholder Communication</div>
+                <div class="step-body">Frame standardization not as a mandate, but as a mutual benefit. Demonstrate that JSON reduces every team's maintenance burden, is already familiar to their developers, and aligns with how AWS services communicate natively. When stakeholders understand this translates to saved time and money, resistance becomes collaboration.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 -->
+        <div class="problem-card" onclick="toggleCard(this)">
+          <div class="problem-header">
+            <span class="problem-num">02</span>
+            <span class="problem-title">Proactive Monitoring & Observability</span>
+            <span class="problem-tag">AWS / CLOUDWATCH</span>
+            <span class="problem-toggle">+</span>
+          </div>
+          <div class="problem-body">
+            <p class="problem-intro">The team currently waits for problems to occur before addressing them. This reactive posture leads to longer outages, cascading failures, and costs that compound far beyond the original incident.</p>
+            <div class="steps-grid">
+              <div class="step-card">
+                <div class="step-label">Key Metrics</div>
+                <div class="step-title">What to Watch</div>
+                <div class="step-body">CPU utilization and memory on EC2 instances. Storage capacity on RDS and S3. Network traffic patterns and anomalies. Error rates and latency trends. Overall service availability. Like a timing belt that goes uninspected — catching warning signals early means the difference between a minor fix and an engine failure.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Tool Stack</div>
+                <div class="step-title">The AWS Monitoring Suite</div>
+                <div class="step-body">CloudWatch collects metrics, logs, and events across the entire infrastructure. CloudWatch Alarms trigger on threshold breaches. AWS SNS delivers instant team alerts via email or SMS. CloudTrail logs all API activity for audit and diagnosis. Trusted Advisor proactively scans for performance, security, and cost issues.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Process</div>
+                <div class="step-title">Human + Automated Review</div>
+                <div class="step-body">Automated monitoring is powerful but not a complete substitute for human oversight. Automated systems catch pattern-based threshold breaches; experienced engineers bring contextual judgment. A regular human review cadence — examining CloudWatch data, CloudTrail logs, and Trusted Advisor findings — creates a continuous improvement loop.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P3 -->
+        <div class="problem-card" onclick="toggleCard(this)">
+          <div class="problem-header">
+            <span class="problem-num">03</span>
+            <span class="problem-title">Resource Constraints</span>
+            <span class="problem-tag">TEAM / AUTOMATION</span>
+            <span class="problem-toggle">+</span>
+          </div>
+          <div class="problem-body">
+            <p class="problem-intro">A small team wearing multiple hats faces a dangerous negative feedback loop: overload leads to stress, stress reduces quality, reduced quality creates more problems, more problems increase overload.</p>
+            <div class="steps-grid">
+              <div class="step-card">
+                <div class="step-label">Assessment</div>
+                <div class="step-title">The Negative Feedback Loop</div>
+                <div class="step-body">Sustained overload erodes work-life balance and decreases job satisfaction — particularly in smaller organizations where budgets are tight and relief headcount isn't immediately feasible. When people feel overworked and underappreciated, retention becomes a problem. Losing an experienced engineer on an already small team compounds pressure on everyone who remains.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">People Strategy</div>
+                <div class="step-title">Redundancy in the Team</div>
+                <div class="step-body">Just as cloud infrastructure is designed with fault tolerance and redundancy, a well-managed team should be built with the same principles. Single points of knowledge are as dangerous as single points of failure. Cross-training creates coverage and an unexpected benefit: peer review. Multiple team members understanding a task means they can catch each other's errors before deployment.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Automation</div>
+                <div class="step-title">Tools That Save Hours</div>
+                <div class="step-body">Terraform deploys entire infrastructure in minutes instead of hours of manual console work. Kubernetes handles automated scaling without manual intervention. Ansible configures resources and installs software automatically. Jenkins establishes CI/CD pipelines that replace manual deployments. The goal: automate everything that follows predictable rules so human time goes to work that requires judgment.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P4 -->
+        <div class="problem-card" onclick="toggleCard(this)">
+          <div class="problem-header">
+            <span class="problem-num">04</span>
+            <span class="problem-title">Lack of Documentation & Guidance</span>
+            <span class="problem-tag">KNOWLEDGE / PROCESS</span>
+            <span class="problem-toggle">+</span>
+          </div>
+          <div class="problem-body">
+            <p class="problem-intro">Poor documentation doesn't just inconvenience teams — it actively costs the company and its customers time and money. Every hour spent diagnosing a problem that documented guidance could have prevented is an hour not spent on productive work.</p>
+            <div class="steps-grid">
+              <div class="step-card">
+                <div class="step-label">Reality Check</div>
+                <div class="step-title">How Knowledge Erodes</div>
+                <div class="step-body">An engineer who performs an initial configuration may remember exactly what they did the following week. Six months later, those details will have faded. If that engineer has moved on to another company, their successor inherits a system with no record of the decisions that shaped it. Without documentation, every handoff becomes a troubleshooting exercise.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Three Pillars</div>
+                <div class="step-title">Standardize · Update · Review</div>
+                <div class="step-body">Standardization establishes consistent expectations for what must be recorded and how. Currency means every change — however minor — is reflected immediately. Peer review ensures the standard is upheld and that documentation is clear enough for someone unfamiliar with the work to follow. A fourth consideration: periodically prune outdated content, as bloated documentation causes confusion just as readily as missing documentation.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Culture</div>
+                <div class="step-title">Knowledge Sharing Practices</div>
+                <div class="step-body">Lunch-and-learns share deep expertise informally and build camaraderie. Structured onboarding programs give new hires the foundation to contribute from day one. An internal wiki serves as a private library — the first stop before asking a supervisor. Pair working transfers knowledge organically in real time. Post-incident reviews turn every failure into a learning opportunity for the entire team.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P5 -->
+        <div class="problem-card" onclick="toggleCard(this)">
+          <div class="problem-header">
+            <span class="problem-num">05</span>
+            <span class="problem-title">Integration of CI/CD Practices</span>
+            <span class="problem-tag">JENKINS / GITOPS</span>
+            <span class="problem-toggle">+</span>
+          </div>
+          <div class="problem-body">
+            <p class="problem-intro">The team has not fully adopted CI/CD practices, leading to delays, manual errors, and a competitive disadvantage. Like Ford's assembly line, CI/CD replaces slow labor-intensive manual processes with a fast, consistent, automated workflow.</p>
+            <div class="steps-grid">
+              <div class="step-card">
+                <div class="step-label">The Case</div>
+                <div class="step-title">Why CI/CD Is Non-Negotiable</div>
+                <div class="step-body">Manual deployment exposes the team to more human error, slower response times, and higher costs per update. Problems are caught earlier in a CI/CD pipeline — where they're cheaper to fix. Engineers are freed from repetitive deployment tasks to focus on building. A team without CI/CD risks being consistently slower to market than competitors who have adopted it.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Rollout</div>
+                <div class="step-title">Phased Implementation</div>
+                <div class="step-body">Begin with a low-pressure introduction — a lunch-and-learn with a guest speaker who has hands-on CI/CD experience. Start with small, non-critical pilot projects where stakes are low and there's room to learn. Scale to mid-level systems as confidence grows, then tackle critical infrastructure. Each success builds collective knowledge and confidence, making the next adoption easier than the last.</div>
+              </div>
+              <div class="step-card">
+                <div class="step-label">Change Management</div>
+                <div class="step-title">Winning the Team Over</div>
+                <div class="step-body">Resistance to change is natural and predictable. Senior engineers may question necessity; others may fear automation renders their roles irrelevant. Address each concern directly and honestly. Frame the transition as an opportunity — new specializations, improved work-life balance, and valuable experience with industry-standard tools. Attempting to force change risks morale failures, active resistance, or even sabotage.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- KEY INSIGHTS -->
+  <div class="wrapper" id="insights">
+    <section>
+      <p class="section-label reveal">// 03 — Key Insights</p>
+      <h2 class="section-title reveal">Principles that run<br>through every solution</h2>
+      <p class="section-desc reveal">Beyond the individual fixes, five broader principles emerge from this analysis that apply to any engineering team at any scale.</p>
+
+      <div class="insights-grid">
+        <div class="insight-card reveal">
+          <span class="insight-icon">⚡</span>
+          <div class="insight-title">Catch problems early</div>
+          <div class="insight-body">Whether it's a misconfigured alarm, an undocumented process, or a format inconsistency — the cost of detection scales exponentially with how long a problem goes unnoticed. Every solution in this report is fundamentally about catching things earlier.</div>
+        </div>
+        <div class="insight-card reveal">
+          <span class="insight-icon">🔁</span>
+          <div class="insight-title">Build redundancy into everything</div>
+          <div class="insight-body">The same fault tolerance principles that protect cloud infrastructure apply equally to teams. Single points of knowledge are as dangerous as single points of failure. Cross-training, documentation, and knowledge sharing are your team's high-availability architecture.</div>
+        </div>
+        <div class="insight-card reveal">
+          <span class="insight-icon">🤝</span>
+          <div class="insight-title">Technology requires human buy-in</div>
+          <div class="insight-body">Every technical solution in this report has a human dimension. The best monitoring stack won't help a team that doesn't review it. The best CI/CD pipeline won't survive a team that resists it. Stakeholder communication and change management are engineering skills, not soft extras.</div>
+        </div>
+        <div class="insight-card reveal">
+          <span class="insight-icon">🏭</span>
+          <div class="insight-title">Automate the predictable</div>
+          <div class="insight-body">If a task follows the same rules every time, automate it. Reserve human time and attention for work that requires judgment — incident diagnosis, architecture decisions, stakeholder communication, security evaluation. The assembly line analogy holds: free your workers for the work machines can't do.</div>
+        </div>
+        <div class="insight-card reveal">
+          <span class="insight-icon">💰</span>
+          <div class="insight-title">Every decision is a business decision</div>
+          <div class="insight-body">Format standardization, proactive monitoring, cross-training, documentation — none of these are purely technical choices. They all protect revenue, reduce costs, and affect the customer experience. Framing technical decisions in business terms is what earns organizational support for implementing them.</div>
+        </div>
+        <div class="insight-card reveal">
+          <span class="insight-icon">📈</span>
+          <div class="insight-title">Small teams punch above their weight</div>
+          <div class="insight-body">The constraints of a small team — limited headcount, tight budget, shared context — can become advantages when managed well. Cross-training builds versatility. Automation multiplies capacity. Documentation preserves institutional knowledge. The right practices make a team of four perform like a team of eight.</div>
+        </div>
+      </div>
+
+      <div class="quote-block reveal">
+        <p class="quote-text">"The most effective solutions are those that respect both the technical and human dimensions of the challenges being addressed. Tools and processes alone are not enough — the team must be supported, informed, and motivated to embrace change."</p>
+        <p class="quote-source">// CONCLUSION — CLOUD ENGINEERING SOLUTIONS REPORT</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TOOLS -->
+  <div class="wrapper" id="tools">
+    <section>
+      <p class="section-label reveal">// 04 — Technology Stack</p>
+      <h2 class="section-title reveal">Tools referenced<br>in this report</h2>
+      <p class="section-desc reveal">Each tool was selected for a specific purpose within the proposed solutions. No tool is recommended in isolation — they form an interconnected stack.</p>
+
+      <div class="tools-grid reveal">
+        <div class="tool-chip">
+          <span class="tool-name">AWS CloudWatch</span>
+          <span class="tool-use">Metrics, logs & event collection</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">AWS SNS</span>
+          <span class="tool-use">Alert delivery & notifications</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">AWS CloudTrail</span>
+          <span class="tool-use">API audit logging</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">AWS Trusted Advisor</span>
+          <span class="tool-use">Proactive environment scanning</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">Terraform</span>
+          <span class="tool-use">Infrastructure as code / IaC</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">Ansible</span>
+          <span class="tool-use">Configuration & provisioning</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">Kubernetes</span>
+          <span class="tool-use">Container orchestration & scaling</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">Jenkins</span>
+          <span class="tool-use">CI/CD pipeline automation</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">GitOps / Argo CD</span>
+          <span class="tool-use">Declarative deployment</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">JSON</span>
+          <span class="tool-use">Standardized data format</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">Internal Wiki</span>
+          <span class="tool-use">Centralized knowledge base</span>
+        </div>
+        <div class="tool-chip">
+          <span class="tool-name">AWS EC2 / RDS / S3</span>
+          <span class="tool-use">Core monitored infrastructure</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ABOUT -->
+  <div class="wrapper" id="about">
+    <section>
+      <p class="section-label reveal">// 05 — About This Project</p>
+      <h2 class="section-title reveal">Context & background</h2>
+
+      <div class="about-grid">
+        <div class="about-card reveal">
+          <div class="about-name">Ben Leyder</div>
+          <div class="about-role">// CLOUD ENGINEERING CANDIDATE</div>
+          <div class="about-divider"></div>
+          <div class="about-stat">
+            <span class="about-stat-label">FOCUS</span>
+            <span class="about-stat-value">AWS Cloud Engineering</span>
+          </div>
+          <div class="about-stat">
+            <span class="about-stat-label">PROBLEMS ANALYZED</span>
+            <span class="about-stat-value">5</span>
+          </div>
+          <div class="about-stat">
+            <span class="about-stat-label">TOOLS COVERED</span>
+            <span class="about-stat-value">12+</span>
+          </div>
+          <div class="about-stat">
+            <span class="about-stat-label">DELIVERABLES</span>
+            <span class="about-stat-value">Report + Presentation</span>
+          </div>
+          <div class="about-divider"></div>
+        </div>
+
+        <div class="about-text reveal">
+          <p>This report was developed as a research and analysis project examining the real-world challenges faced by small cloud engineering teams. Rather than a deployment exercise, the goal was to <strong>think critically about organizational and technical problems</strong> and propose practical, tool-grounded solutions for each.</p>
+
+          <p>The five problems examined — data source variability, reactive monitoring, resource constraints, documentation gaps, and incomplete CI/CD adoption — are not hypothetical. They represent <strong>patterns that appear consistently across cloud engineering teams</strong>, particularly at smaller organizations where every inefficiency is felt more acutely.</p>
+
+          <p>What emerged from the analysis was a common thread: <strong>the most effective solutions address both the technical and human dimensions of a problem simultaneously.</strong> A monitoring stack without a review process is incomplete. A CI/CD pipeline without team buy-in won't survive. Documentation standards without peer review drift into inconsistency.</p>
+
+          <p>The broader principle — <strong>building redundancy, catching problems early, and treating every technical decision as a business decision</strong> — applies well beyond cloud engineering. It's a framework for thinking about any complex system that depends on both tools and people to function reliably.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="divider"></div>
+  <div class="wrapper">
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-left">
+          BEN LEYDER &nbsp;·&nbsp; CLOUD ENGINEERING SOLUTIONS REPORT
+        </div>
+        <div class="footer-right">
+          Built for <a href="https://github.com" target="_blank">GitHub Pages</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Toggle accordion cards
+    function toggleCard(card) {
+      const wasOpen = card.classList.contains('open');
+      document.querySelectorAll('.problem-card.open').forEach(c => c.classList.remove('open'));
+      if (!wasOpen) card.classList.add('open');
+    }
+
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // Stagger children if parent has multiple reveals
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 4) * 0.08}s`;
+      observer.observe(el);
+    });
+
+    // Smooth active nav highlight
+    const sections = document.querySelectorAll('section, div[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      document.querySelectorAll('[id]').forEach(section => {
+        if (window.scrollY >= section.offsetTop - 120) {
+          current = section.id;
+        }
+      });
+      navLinks.forEach(link => {
+        link.style.color = link.getAttribute('href') === `#${current}` ? 'var(--teal)' : '';
+      });
+    });
+  </script>
+</body>
+</html>
