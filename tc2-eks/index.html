@@ -1,1 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ben Leyder – AWS EKS: Kubernetes CI/CD with Jenkins & ArgoCD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg: #0a0e13;
+      --bg2: #0f1419;
+      --bg3: #161d26;
+      --border: #1e2a38;
+      --border2: #243040;
+      --text: #c8d8e8;
+      --text2: #7a9ab8;
+      --text3: #4a6a88;
+      --accent: #38bdf8;
+      --accent2: #0ea5e9;
+      --green: #34d399;
+      --orange: #fb923c;
+      --red: #f87171;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10,14,19,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-brand span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    /* HERO */
+    .hero {
+      padding: 8rem 2rem 4rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .breadcrumb {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      margin-bottom: 2rem;
+    }
+
+    .breadcrumb a {
+      color: var(--text3);
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb span { color: var(--accent); margin: 0 0.5rem; }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 600;
+      color: #e8f4ff;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text2);
+      max-width: 680px;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+
+    .tag.accent {
+      border-color: rgba(56,189,248,0.3);
+      color: var(--accent);
+      background: rgba(56,189,248,0.05);
+    }
+
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 5rem;
+    }
+
+    .stat {
+      background: var(--bg2);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: block;
+    }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    /* SECTIONS */
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+    }
+
+    h2 {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ARCH DIAGRAM */
+    .arch-diagram {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text2);
+      line-height: 2;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    .arch-accent { color: var(--accent); }
+    .arch-green { color: var(--green); }
+    .arch-orange { color: var(--orange); }
+
+    .arch-note {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.7;
+      padding: 1.25rem 1.5rem;
+      border-left: 2px solid var(--accent);
+      background: rgba(56,189,248,0.03);
+    }
+
+    /* WHAT I BUILT */
+    .build-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .build-item {
+      background: var(--bg2);
+      padding: 1.75rem;
+    }
+
+    .build-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    .build-title {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+
+    .build-title span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-weight: 400;
+      margin-top: 0.15rem;
+    }
+
+    .build-body {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+
+    .build-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .build-tag {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text3);
+      border: 1px solid var(--border2);
+      padding: 0.15rem 0.45rem;
+    }
+
+    /* TROUBLESHOOTING */
+    .issue-block {
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .issue-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .issue-badge {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.5rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .issue-badge.issue {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red);
+    }
+
+    .issue-badge.resolved {
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.3);
+      color: var(--green);
+    }
+
+    .issue-text {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    .issue-resolution {
+      padding: 1.25rem 1.5rem;
+      background: var(--bg);
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+
+    .issue-resolution code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: rgba(56,189,248,0.08);
+      padding: 0.1rem 0.35rem;
+    }
+
+    /* PIPELINE COMPARISON */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+    }
+
+    .compare-table th {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    .compare-table th:first-child { color: var(--text3); }
+    .compare-table th.jenkins { color: var(--orange); }
+    .compare-table th.gitops { color: var(--accent); }
+
+    .compare-table td {
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+      vertical-align: top;
+    }
+
+    .compare-table td:first-child {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .skill-group {
+      background: var(--bg2);
+      padding: 1.5rem;
+    }
+
+    .skill-group-title {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .skill-group ul {
+      list-style: none;
+    }
+
+    .skill-group li {
+      font-size: 0.83rem;
+      color: var(--text2);
+      padding: 0.25rem 0;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .skill-group li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* FOOTER */
+    footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-meta {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      line-height: 1.8;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    /* DOWNWARD API CALLOUT */
+    .callout {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-left: 3px solid var(--green);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .callout-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--green);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .callout p {
+      font-size: 0.9rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+
+    .callout code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--green);
+      background: rgba(52,211,153,0.08);
+      padding: 0.1rem 0.35rem;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .build-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+      nav { padding: 1rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../" class="nav-brand">// <span>LEYDER-BEN</span></a>
+  <ul class="nav-links">
+    <li><a href="#architecture">ARCHITECTURE</a></li>
+    <li><a href="#built">WHAT I BUILT</a></li>
+    <li><a href="#troubleshooting">TROUBLESHOOTING</a></li>
+    <li><a href="#pipelines">PIPELINES</a></li>
+    <li><a href="#skills">SKILLS</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="breadcrumb">
+    <a href="../">portfolio</a>
+    <span>/</span>
+    devops
+    <span>/</span>
+    kubernetes infrastructure
+  </div>
+
+  <div class="hero-label">MAY 2026</div>
+
+  <h1>Container Orchestration<br>& CI/CD on <em>AWS EKS</em></h1>
+
+  <p style="font-family:'IBM Plex Mono',monospace; font-size:0.85rem; color:#4a6a88; letter-spacing:0.08em; margin-bottom:2rem;">Two pipelines. One cluster. Built in 72 hours.</p>
+  
+  <p class="hero-desc">
+    Provisioned a production-grade Kubernetes cluster on AWS EKS with Terraform, deployed a personalized portfolio application via Helm, and automated the full deployment lifecycle with two independent CI/CD pipelines — Jenkins on main, GitHub Actions + ArgoCD on gitops. Built and running in under 72 hours.
+  </p>
+
+  <div class="tag-row">
+    <span class="tag accent">AWS EKS</span>
+    <span class="tag accent">Terraform</span>
+    <span class="tag accent">Kubernetes</span>
+    <span class="tag accent">Helm</span>
+    <span class="tag">Jenkins</span>
+    <span class="tag">GitHub Actions</span>
+    <span class="tag">ArgoCD</span>
+    <span class="tag">ECR</span>
+    <span class="tag">AWS ALB</span>
+    <span class="tag">HPA</span>
+    <span class="tag">Docker</span>
+    <span class="tag">Node.js</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <span class="stat-value">69</span>
+      <span class="stat-label">AWS Resources</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">2</span>
+      <span class="stat-label">CI/CD Pipelines</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">4</span>
+      <span class="stat-label">Max Node Scale</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">72h</span>
+      <span class="stat-label">Build Time</span>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Architecture</h2>
+  </div>
+
+  <div class="arch-diagram">
+<span class="arch-accent">// MAIN BRANCH — Jenkins CI/CD</span>
+Developer Push ──▶ GitHub (main)
+                        │
+                        └──webhook──▶ <span class="arch-orange">Jenkins EC2 (t3.medium)</span>
+                                           │
+                        ┌──────────────────┤
+                        ▼                  ▼                  ▼
+                  docker build        ECR push          helm upgrade
+                        │
+                        └──────────────────────────────────────────────▶
+                                                                        │
+<span class="arch-accent">// GITOPS BRANCH — GitHub Actions + ArgoCD</span>
+Developer Push ──▶ GitHub (gitops)
+                        │
+                        └──trigger──▶ <span class="arch-accent">GitHub Actions (ubuntu-latest)</span>
+                                           │
+                                     docker build + ECR push
+                                           │
+                                     update values.yaml + commit
+                                           │
+                        <span class="arch-green">ArgoCD</span> detects change ──▶ auto-sync cluster
+                                                                        │
+                                                                        ▼
+                                            <span class="arch-green">AWS ALB</span> (Terraform-managed)
+                                                        │
+                                            ┌───────────┴───────────┐
+                                            ▼                       ▼
+                                  <span class="arch-orange">EKS Node (t3.small)</span>     <span class="arch-orange">EKS Node (t3.small)</span>
+                                        │                       │
+                                  <span class="arch-accent">App Pod</span>                  <span class="arch-accent">ArgoCD Pods</span>
+                                  (HPA: 1–3)
+  </div>
+
+  <p class="arch-note">
+    <strong>Key architectural decision:</strong> The ALB is defined as an explicit Terraform resource rather than letting the Helm ALB Ingress Controller provision it dynamically. When the controller manages the ALB, it creates resources outside of Terraform's state — which means <code>terraform destroy</code> fails because it can't remove the VPC while the controller-managed ALB is still holding subnets. By owning the ALB in Terraform, the full infrastructure lifecycle runs cleanly from a single command.
+  </p>
+</section>
+
+<!-- WHAT I BUILT -->
+<section class="section" id="built">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>What I Built</h2>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">// Application — Kubernetes Downward API</div>
+    <p>Rather than deploying a generic Hello World, I built a personalized portfolio page that pulls live Kubernetes cluster data at request time using the Downward API. The pod injects <code>POD_NAME</code>, <code>NODE_NAME</code>, and <code>NAMESPACE</code> as environment variables — rendering real cluster data on every page load. If the pod reschedules to a different node, the page reflects it immediately.</p>
+  </div>
+
+  <div class="build-grid">
+    <div class="build-item">
+      <div class="build-num">01</div>
+      <div class="build-title">Infrastructure as Code — Terraform
+        <span>VPC · EKS · ALB · IAM · Jenkins</span>
+      </div>
+      <p class="build-body">Wrote five Terraform files provisioning a complete AWS environment: custom VPC with public/private subnets across three AZs, NAT gateway, EKS cluster with managed node groups, AWS ALB with listener and target group, IAM role for the ALB controller via OIDC, dedicated IAM policy for controller permissions, pre-destroy cleanup hook, and a Jenkins EC2 instance with full bootstrapping via user_data.</p>
+      <div class="build-tags">
+        <span class="build-tag">terraform</span>
+        <span class="build-tag">vpc</span>
+        <span class="build-tag">eks</span>
+        <span class="build-tag">alb</span>
+        <span class="build-tag">iam</span>
+        <span class="build-tag">oidc</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">02</div>
+      <div class="build-title">Kubernetes Deployment — Helm
+        <span>HPA · Ingress · Downward API</span>
+      </div>
+      <p class="build-body">Packaged the application as a Helm chart with templated deployment, service, ingress, HPA, and service account resources. Configured Horizontal Pod Autoscaling to scale between 1 and 3 replicas at 50% CPU or memory utilization. Added Kubernetes Downward API env vars to the deployment template so each pod exposes its own metadata to the running application.</p>
+      <div class="build-tags">
+        <span class="build-tag">helm</span>
+        <span class="build-tag">kubernetes</span>
+        <span class="build-tag">hpa</span>
+        <span class="build-tag">ingress</span>
+        <span class="build-tag">downward api</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">03</div>
+      <div class="build-title">Jenkins CI/CD Pipeline
+        <span>4-Stage · Build Number Tagging</span>
+      </div>
+      <p class="build-body">Jenkins runs on a dedicated EC2 instance provisioned by Terraform. A declarative Jenkinsfile defines four stages: Checkout, Build Docker Image, Push to ECR (tagged with Jenkins build number), and Deploy to EKS via <code>helm upgrade --install</code>. AWS credentials and kubeconfig are injected via the Jenkins credential store using the AWS Credentials and Kubernetes CLI plugins.</p>
+      <div class="build-tags">
+        <span class="build-tag">jenkins</span>
+        <span class="build-tag">groovy</span>
+        <span class="build-tag">ecr</span>
+        <span class="build-tag">docker</span>
+        <span class="build-tag">helm</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">04</div>
+      <div class="build-title">GitOps — GitHub Actions + ArgoCD
+        <span>Pull-Based · Self-Healing · Commit SHA Tagging</span>
+      </div>
+      <p class="build-body">GitHub Actions handles CI on the gitops branch — building and pushing images tagged with the commit SHA, then updating values.yaml and committing back to the repo. ArgoCD watches the branch continuously and auto-syncs the cluster when it detects a change. Self-healing is enabled: if any resource drifts from what the repo declares, ArgoCD corrects it. Git is the source of truth.</p>
+      <div class="build-tags">
+        <span class="build-tag">github actions</span>
+        <span class="build-tag">argocd</span>
+        <span class="build-tag">gitops</span>
+        <span class="build-tag">ecr</span>
+        <span class="build-tag">helm</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">05</div>
+      <div class="build-title">AWS Load Balancer Controller
+        <span>OIDC · IAM Role for Service Account</span>
+      </div>
+      <p class="build-body">Installed the AWS Load Balancer Controller into the EKS cluster via Helm. The controller uses an IAM role bound to its Kubernetes service account via OIDC federation — no static credentials required. The role is provisioned by Terraform using the <code>iam-role-for-service-accounts-eks</code> module, with a dedicated IAM policy granting the specific API permissions the controller needs.</p>
+      <div class="build-tags">
+        <span class="build-tag">alb controller</span>
+        <span class="build-tag">oidc</span>
+        <span class="build-tag">irsa</span>
+        <span class="build-tag">iam</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">06</div>
+      <div class="build-title">Infrastructure Teardown
+        <span>Pre-Destroy Hook · Clean Lifecycle</span>
+      </div>
+      <p class="build-body">A <code>null_resource</code> with a <code>local-exec</code> destroy provisioner runs automatically before Terraform removes the VPC. It updates kubeconfig, deletes all Kubernetes ingress resources, and waits 60 seconds for the controller-managed ALB to terminate — preventing the subnet dependency violations that plagued the first run. Full teardown runs from a single <code>terraform destroy</code>.</p>
+      <div class="build-tags">
+        <span class="build-tag">terraform</span>
+        <span class="build-tag">null_resource</span>
+        <span class="build-tag">destroy hooks</span>
+        <span class="build-tag">lifecycle</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TROUBLESHOOTING -->
+<section class="section" id="troubleshooting">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Problems I Solved</h2>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Node group <code>CREATE_FAILED</code> — nodes joining cluster in <code>NotReady</code> state. The vpc-cni addon wasn't installed before nodes were provisioned, causing the aws-node pod to crash loop with <code>ec2:DescribeNetworkInterfaces</code> permission errors.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Added <code>before_compute = true</code> to the vpc-cni addon block, forcing addon installation before node provisioning. Also added <code>AmazonEKS_CNI_Policy</code> to <code>iam_role_additional_policies</code> in the node group so nodes have the required EC2 API permissions from the start.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text"><code>terraform destroy</code> failed with <code>DependencyViolation</code> on the first run. The ALB Ingress Controller had created an ALB dynamically — outside of Terraform's state — which was still holding subnets and the internet gateway when Terraform tried to tear down the VPC.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Moved the ALB into Terraform as explicit resources: <code>aws_lb</code>, <code>aws_security_group</code>, <code>aws_lb_listener</code>, and <code>aws_lb_target_group</code>. Added a <code>null_resource</code> pre-destroy hook that deletes Kubernetes ingresses and waits 60 seconds before VPC teardown. Full lifecycle now runs clean.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">ALB controller v3.3.0 blocked with repeated <code>AccessDenied</code> on <code>elasticloadbalancing:DescribeListenerAttributes</code>. Ingress address never populated. This API call isn't covered by <code>ElasticLoadBalancingFullAccess</code>.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Created a dedicated <code>AWSLoadBalancerControllerIAMPolicy</code> granting the specific permissions required and attached it to the <code>load-balancer-controller</code> IAM role. Both the policy and attachment are Terraform resources. Restarted the controller — ingress address populated within seconds.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Jenkins could not perform git operations. SSH into the EC2 instance returned <code>-bash: git: command not found</code>. The pipeline failed immediately at the SCM checkout stage.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Installed git manually with <code>sudo yum install -y git</code>, then permanently added it to the <code>user_data</code> bootstrap script in <code>jenkins.tf</code> so future deployments never require this manual step.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">ArgoCD install failed with <code>metadata.annotations: Too long: must have at most 262144 bytes</code>. Pods stuck in Pending after install — single t3.small node was at capacity with existing workloads.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Added <code>--server-side --force-conflicts</code> flags to bypass the annotation size limit. Scaled the node group to 2 nodes — the <code>desired_size = 2</code> in Terraform is intentional, as ArgoCD requires the second t3.small node to run alongside the application.
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINES -->
+<section class="section" id="pipelines">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Jenkins vs GitOps — The Tradeoffs</h2>
+  </div>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th class="jenkins">Jenkins</th>
+        <th class="gitops">GitHub Actions + ArgoCD</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Deployment model</td>
+        <td>Push-based</td>
+        <td>Pull-based</td>
+      </tr>
+      <tr>
+        <td>Source of truth</td>
+        <td>Pipeline script</td>
+        <td>Git repository</td>
+      </tr>
+      <tr>
+        <td>Self-healing</td>
+        <td>No</td>
+        <td>Yes — ArgoCD corrects drift automatically</td>
+      </tr>
+      <tr>
+        <td>Audit trail</td>
+        <td>Build logs</td>
+        <td>Git commit history</td>
+      </tr>
+      <tr>
+        <td>Image tagging</td>
+        <td>Jenkins build number</td>
+        <td>Git commit SHA</td>
+      </tr>
+      <tr>
+        <td>Infrastructure needed</td>
+        <td>Jenkins EC2 server</td>
+        <td>ArgoCD in-cluster</td>
+      </tr>
+      <tr>
+        <td>Best for</td>
+        <td>Enterprise, complex pipelines</td>
+        <td>Cloud-native, GitOps workflows</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>Skills Demonstrated</h2>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-group">
+      <div class="skill-group-title">// Cloud & Infrastructure</div>
+      <ul>
+        <li>AWS EKS managed node groups</li>
+        <li>VPC with public/private subnets</li>
+        <li>Application Load Balancer (Terraform)</li>
+        <li>ECR repository management</li>
+        <li>IAM roles via OIDC federation</li>
+        <li>EC2 bootstrapping with user_data</li>
+        <li>NAT Gateway configuration</li>
+      </ul>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">// Kubernetes & Helm</div>
+      <ul>
+        <li>EKS cluster provisioning</li>
+        <li>Helm chart authoring</li>
+        <li>Horizontal Pod Autoscaling</li>
+        <li>Ingress with ALB controller</li>
+        <li>Kubernetes Downward API</li>
+        <li>Metrics Server installation</li>
+        <li>ArgoCD GitOps deployment</li>
+      </ul>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">// DevOps & Automation</div>
+      <ul>
+        <li>Terraform IaC (5 config files)</li>
+        <li>Jenkins declarative pipelines</li>
+        <li>GitHub Actions workflow authoring</li>
+        <li>Docker image build and push</li>
+        <li>Pre-destroy lifecycle hooks</li>
+        <li>Credential management in Jenkins</li>
+        <li>Git branching strategy</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-meta">
+    github.com/leyder-ben/tc2-eks-pipeline · AWS us-east-2 · May 2026
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/leyder-ben" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/ben-leyder-a79550141/" target="_blank">LinkedIn</a>
+  </div>
+</footer>
+
+</body>
+</html>
