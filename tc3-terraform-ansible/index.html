@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ben Leyder – TC3: Infrastructure as Code with Terraform & Ansible</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e13;
+      --bg2: #0f1419;
+      --bg3: #161d26;
+      --border: #1e2a38;
+      --border2: #243040;
+      --text: #c8d8e8;
+      --text2: #7a9ab8;
+      --text3: #4a6a88;
+      --accent: #38bdf8;
+      --accent2: #0ea5e9;
+      --green: #34d399;
+      --orange: #fb923c;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10,14,19,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+    .nav-brand:hover { color: var(--accent); }
+    .nav-brand span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 9rem 2rem 5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-breadcrumb {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+    }
+    .hero-breadcrumb a {
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .hero-breadcrumb a:hover { color: var(--accent); }
+    .hero-breadcrumb span { color: var(--border2); margin: 0 0.5rem; }
+
+    .hero-date {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 600;
+      line-height: 1.15;
+      color: #e8f4ff;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text2);
+      margin-bottom: 2rem;
+      max-width: 680px;
+      line-height: 1.7;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      background: var(--bg3);
+      color: var(--accent);
+      border: 1px solid var(--border2);
+      padding: 0.25rem 0.6rem;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text3);
+      margin-top: 0.25rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      letter-spacing: 0.15em;
+      margin-bottom: 0.5rem;
+    }
+    .section-num {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    h2 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: #e8f4ff;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+    }
+
+    p { color: var(--text2); line-height: 1.75; margin-bottom: 1rem; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── ARCHITECTURE DIAGRAM ── */
+    .arch-diagram {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text2);
+      line-height: 1.9;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    .arch-diagram .hl { color: var(--accent); }
+    .arch-diagram .gr { color: var(--green); }
+    .arch-diagram .or { color: var(--orange); }
+    .arch-diagram .dim { color: var(--text3); }
+
+    .arch-note {
+      background: var(--bg3);
+      border-left: 3px solid var(--accent);
+      padding: 1rem 1.25rem;
+      border-radius: 0 4px 4px 0;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+    .arch-note strong { color: var(--text); }
+
+    /* ── WHAT I BUILT CARDS ── */
+    .built-grid {
+      display: grid;
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .built-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .built-card:hover { border-color: var(--border2); }
+
+    .built-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .built-card-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      flex-shrink: 0;
+      padding-top: 0.15rem;
+    }
+    .built-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: flex-end;
+    }
+    .built-card-tags .tag {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+    }
+    .built-card p { font-size: 0.9rem; margin-bottom: 0; }
+
+    /* ── TROUBLESHOOTING ── */
+    .issue-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .issue-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(248,113,113,0.05);
+      border-bottom: 1px solid var(--border);
+    }
+    .issue-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      flex-shrink: 0;
+    }
+    .issue-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--red);
+      letter-spacing: 0.1em;
+      flex-shrink: 0;
+    }
+    .issue-title {
+      font-size: 0.9rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .issue-body { padding: 1.25rem; }
+    .issue-body p { font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+    .resolved-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .resolved-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+    .resolved-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--green);
+      letter-spacing: 0.1em;
+    }
+    .issue-body .resolved-text {
+      font-size: 0.9rem;
+      color: var(--text2);
+      margin-bottom: 0;
+      padding-left: 1.25rem;
+      border-left: 2px solid rgba(52,211,153,0.3);
+    }
+
+    /* ── COMPARISON TABLE ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+    }
+    .compare-table th {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      text-align: left;
+      padding: 0.6rem 1rem;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+      vertical-align: top;
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+    .compare-table td strong { color: var(--text); }
+
+    /* ── SKILLS ── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .skill-group h3 {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+    .skill-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .skill-list li {
+      font-size: 0.88rem;
+      color: var(--text2);
+      padding-left: 1rem;
+      position: relative;
+    }
+    .skill-list li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 1rem; }
+      .nav-links { gap: 1rem; }
+      .hero { padding: 7rem 1.25rem 3rem; }
+      section { padding: 3rem 1.25rem; }
+      footer { padding: 1.5rem 1.25rem; }
+      .stat-row { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="https://leyder-ben.github.io/devops-portfolio/" class="nav-brand">// <span>LEYDER-BEN</span></a>
+    <ul class="nav-links">
+      <li><a href="#architecture">ARCHITECTURE</a></li>
+      <li><a href="#built">WHAT I BUILT</a></li>
+      <li><a href="#troubleshooting">TROUBLESHOOTING</a></li>
+      <li><a href="#skills">SKILLS</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-breadcrumb">
+      <a href="https://leyder-ben.github.io/devops-portfolio/">portfolio</a>
+      <span>/</span>devops<span>/</span>infrastructure as code
+    </div>
+    <div class="hero-date">MAY 2026</div>
+    <h1>Infrastructure as Code<br>with <em>Terraform & Ansible</em></h1>
+    <p class="hero-sub">Provision cloud infrastructure with Terraform. Configure it with Ansible. Two tools, one clean automated workflow — from zero to a live web server without touching a server by hand.</p>
+    <div class="tag-row">
+      <span class="tag">Terraform</span>
+      <span class="tag">Ansible</span>
+      <span class="tag">AWS EC2</span>
+      <span class="tag">AWS S3</span>
+      <span class="tag">IAM</span>
+      <span class="tag">Nginx</span>
+      <span class="tag">Amazon Linux 2023</span>
+      <span class="tag">IaC</span>
+      <span class="tag">Configuration Management</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat">
+        <span class="stat-num">7</span>
+        <span class="stat-label">AWS Resources</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">3</span>
+        <span class="stat-label">Ansible Tasks</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">2</span>
+        <span class="stat-label">Deploys</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">0</span>
+        <span class="stat-label">Manual Server Touches</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture" class="reveal">
+    <div class="section-num">01</div>
+    <h2>Architecture</h2>
+    <p>Terraform and Ansible address two distinct layers of the infrastructure problem. Terraform talks to AWS APIs and creates resources. Ansible connects to those resources over SSH and configures what runs on them. The split is intentional — provisioning and configuration management are different problems that benefit from different tools.</p>
+
+    <div class="arch-diagram"><pre style="font-family:inherit;font-size:inherit;line-height:inherit;white-space:pre;margin:0;background:none;border:none;padding:0;">
+<span class="dim">// PROVISIONING LAYER — Terraform</span>
+
+<span class="hl">terraform apply</span>
+  │
+  ├── <span class="gr">aws_key_pair</span>          → uploads SSH public key to AWS
+  ├── <span class="gr">aws_security_group</span>    → port 22 (SSH) + port 80 (HTTP) inbound
+  ├── <span class="gr">aws_iam_role</span>          → EC2 service role
+  ├── <span class="gr">aws_iam_role_policy_attachment</span>  → AmazonS3ReadOnlyAccess
+  ├── <span class="gr">aws_iam_instance_profile</span>  → wraps role for EC2 attachment
+  ├── <span class="gr">aws_s3_bucket</span>         → object storage (force_destroy enabled)
+  └── <span class="gr">aws_instance</span>          → EC2 t2.micro, Amazon Linux 2023
+        │
+        └── outputs: <span class="hl">ec2_public_ip</span>, <span class="hl">web_url</span>, <span class="hl">s3_bucket_name</span>
+
+<span class="dim">// CONFIGURATION LAYER — Ansible</span>
+
+<span class="hl">ansible-playbook</span> -i inventory.ini playbook.yml
+  │
+  ├── <span class="or">Install Nginx</span>         → dnf package manager (AL2023)
+  ├── <span class="or">Deploy index.html</span>     → copy module → /usr/share/nginx/html/
+  └── <span class="or">Start + enable Nginx</span>  → service module, survives reboots
+        │
+        └── <span class="hl">http://&lt;EC2_PUBLIC_IP&gt;</span>  ← live web page
+</pre></div>
+
+    <div class="arch-note">
+      <strong>Why separate provisioning from configuration management?</strong> Terraform creates infrastructure and tracks state — it knows what it built and can calculate exactly what needs to change on the next run. Ansible configures what's already running — idempotent by design, it only changes what needs changing. Using one tool to do both creates fragile, hard-to-debug configurations. Using each tool for what it's actually designed for keeps the workflow clean and predictable.
+    </div>
+  </section>
+
+  <!-- WHAT I BUILT -->
+  <section id="built" class="reveal">
+    <div class="section-num">02</div>
+    <h2>What I Built</h2>
+    <div class="built-grid">
+
+      <div class="built-card">
+        <div class="built-card-header">
+          <span class="built-card-num">01</span>
+          <div class="built-card-tags">
+            <span class="tag">terraform</span>
+            <span class="tag">variables</span>
+            <span class="tag">outputs</span>
+          </div>
+        </div>
+        <h3>Terraform Configuration — Three-File Structure</h3>
+        <p>Split across <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">variables.tf</code>, <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">main.tf</code>, and <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">outputs.tf</code> following standard Terraform practice. Variables centralize configurable inputs — region, AMI ID, instance type, key name, bucket name — so the full infrastructure can be redeployed to a different region by editing a single file. Outputs expose the EC2 public IP and web URL after apply, which feeds directly into Ansible's inventory.</p>
+      </div>
+
+      <div class="built-card">
+        <div class="built-card-header">
+          <span class="built-card-num">02</span>
+          <div class="built-card-tags">
+            <span class="tag">ec2</span>
+            <span class="tag">iam</span>
+            <span class="tag">security group</span>
+          </div>
+        </div>
+        <h3>EC2 Instance with IAM Role and Security Group</h3>
+        <p>Provisioned a t2.micro EC2 instance on Amazon Linux 2023 with a dedicated IAM role granting S3 read access via instance profile — no static credentials embedded anywhere. The security group allows inbound SSH on port 22 for Ansible connectivity and HTTP on port 80 for the web server, with unrestricted outbound. SSH key pair is provisioned by Terraform from the local public key, so no manual key upload required.</p>
+      </div>
+
+      <div class="built-card">
+        <div class="built-card-header">
+          <span class="built-card-num">03</span>
+          <div class="built-card-tags">
+            <span class="tag">s3</span>
+            <span class="tag">iam policy</span>
+          </div>
+        </div>
+        <h3>S3 Bucket with IAM Policy Attachment</h3>
+        <p>S3 bucket provisioned alongside EC2 in a single Terraform config, demonstrating multi-resource IaC management. The EC2 instance's IAM role has the AWS-managed AmazonS3ReadOnlyAccess policy attached via <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">aws_iam_role_policy_attachment</code>, giving the instance read access to the bucket without any embedded credentials. <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">force_destroy = true</code> is set so <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">terraform destroy</code> cleans up the bucket even if it contains objects.</p>
+      </div>
+
+      <div class="built-card">
+        <div class="built-card-header">
+          <span class="built-card-num">04</span>
+          <div class="built-card-tags">
+            <span class="tag">ansible</span>
+            <span class="tag">nginx</span>
+            <span class="tag">idempotent</span>
+          </div>
+        </div>
+        <h3>Ansible Playbook — Nginx Install and Web Deployment</h3>
+        <p>Three-task playbook running against the EC2 instance with <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">become: yes</code>. Uses the <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">dnf</code> module for package management — Amazon Linux 2023 replaced yum with dnf, a distinction that matters in practice. The <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">copy</code> module deploys the HTML page directly to the Nginx web root. The <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">service</code> module starts Nginx and enables it on boot. Idempotency confirmed — a second playbook run after an HTML correction showed <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">changed=1</code> on only the modified file.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- TROUBLESHOOTING -->
+  <section id="troubleshooting" class="reveal">
+    <div class="section-num">03</div>
+    <h2>Problems I Solved</h2>
+
+    <div class="issue-block">
+      <div class="issue-header">
+        <div class="issue-dot"></div>
+        <span class="issue-label">ISSUE</span>
+        <span class="issue-title">Wrong region — resources provisioned in us-east-1 instead of us-east-2</span>
+      </div>
+      <div class="issue-body">
+        <p>The initial <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">terraform apply</code> completed successfully but all 7 resources landed in us-east-1. The AMI ID <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">ami-0c02fb55956c7d316</code> is region-specific and only valid in us-east-1, making it unusable in the target region. The EC2 instance also wasn't visible in the AWS Console because EC2 is a regional service — the console only shows instances in the currently selected region. The S3 bucket did appear because S3 is a global service that shows all buckets regardless of region.</p>
+        <div class="resolved-header">
+          <div class="resolved-dot"></div>
+          <span class="resolved-label">RESOLVED</span>
+        </div>
+        <p class="resolved-text">Ran <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">terraform destroy</code>, updated <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">variables.tf</code> with the correct region (us-east-2) and the correct Amazon Linux 2023 AMI for that region (<code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">ami-0acc7a0cdd879d0f2</code>). AMI IDs are not portable across regions — the same OS image has a different ID in every region and must be verified before deployment.</p>
+      </div>
+    </div>
+
+    <div class="issue-block">
+      <div class="issue-header">
+        <div class="issue-dot"></div>
+        <span class="issue-label">ISSUE</span>
+        <span class="issue-title">Terraform hung for 14 minutes on S3 bucket creation — global namespace conflict</span>
+      </div>
+      <div class="issue-body">
+        <p>During the second <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">terraform apply</code>, all 6 other resources provisioned cleanly but the S3 bucket creation hung indefinitely. The previous bucket from the us-east-1 run was still in a releasing state after destroy. S3 bucket names are globally unique across all AWS accounts worldwide — not just within your own account or region. A name that's claimed anywhere, even temporarily, cannot be used again until it fully releases.</p>
+        <div class="resolved-header">
+          <div class="resolved-dot"></div>
+          <span class="resolved-label">RESOLVED</span>
+        </div>
+        <p class="resolved-text">Cancelled the apply with Ctrl+C and renamed the bucket from <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">tc3-webapp-bucket-leyder-ben</code> to <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">tc3-webapp-bucket-ben-leyder</code>. The name change cleared the global namespace conflict and the bucket created immediately on reapply. Unlike EC2 or most AWS resources where naming conflicts are scoped to a single account, S3 names are a shared global namespace — if Terraform hangs specifically on S3 creation with no error, name conflict is the first thing to check.</p>
+      </div>
+    </div>
+
+    <div class="issue-block">
+      <div class="issue-header">
+        <div class="issue-dot"></div>
+        <span class="issue-label">ISSUE</span>
+        <span class="issue-title">Ansible returned "Empty playbook, nothing to do"</span>
+      </div>
+      <div class="issue-body">
+        <p>After updating the Terraform variables, a <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">sed</code> command was run to swap <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">yum</code> for <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">dnf</code> in the playbook. The command wiped the file instead of doing a clean in-place substitution, leaving it empty. Ansible returned "Empty playbook, nothing to do" with no other error.</p>
+        <div class="resolved-header">
+          <div class="resolved-dot"></div>
+          <span class="resolved-label">RESOLVED</span>
+        </div>
+        <p class="resolved-text">Rewrote the playbook directly using <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">cat</code> with a heredoc. For files containing special characters or complex formatting, writing directly with <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">cat</code> or <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">nano</code> is more reliable than <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">sed</code> substitution. Also confirmed that Amazon Linux 2023 uses <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">dnf</code> — not <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">yum</code> — as the package manager. The Ansible <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">yum</code> module will still work on AL2023 as a compatibility alias, but using <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">dnf</code> explicitly is the correct practice.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOL COMPARISON -->
+  <section id="comparison" class="reveal">
+    <div class="section-num">04</div>
+    <h2>Terraform vs Ansible — Distinct Roles</h2>
+    <p>These tools are often grouped together as "IaC" but they solve fundamentally different problems. Understanding the distinction matters for building maintainable infrastructure.</p>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>TERRAFORM</th>
+          <th>ANSIBLE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Primary role</td>
+          <td><strong>Infrastructure provisioning</strong></td>
+          <td><strong>Configuration management</strong></td>
+        </tr>
+        <tr>
+          <td>What it manages</td>
+          <td>Cloud resources (EC2, S3, VPC, IAM)</td>
+          <td>Software and config on running servers</td>
+        </tr>
+        <tr>
+          <td>State tracking</td>
+          <td>Yes — maintains tfstate, plans diffs</td>
+          <td>No — checks current state on each run</td>
+        </tr>
+        <tr>
+          <td>Idempotency</td>
+          <td>Via state file and plan</td>
+          <td>Built-in — only changes what needs changing</td>
+        </tr>
+        <tr>
+          <td>Connection method</td>
+          <td>AWS API calls</td>
+          <td>SSH into running instances</td>
+        </tr>
+        <tr>
+          <td>Language</td>
+          <td>HCL (HashiCorp Configuration Language)</td>
+          <td>YAML playbooks</td>
+        </tr>
+        <tr>
+          <td>Best used for</td>
+          <td>Spinning up the environment</td>
+          <td>Configuring what runs inside it</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills" class="reveal">
+    <div class="section-num">05</div>
+    <h2>Skills Demonstrated</h2>
+    <div class="skills-grid">
+      <div class="skill-group">
+        <h3>// Terraform & IaC</h3>
+        <ul class="skill-list">
+          <li>Multi-resource Terraform configuration</li>
+          <li>variables.tf / outputs.tf separation</li>
+          <li>AWS provider configuration</li>
+          <li>terraform init, validate, plan, apply, destroy</li>
+          <li>State file management and .gitignore hygiene</li>
+          <li>force_destroy for clean teardown</li>
+        </ul>
+      </div>
+      <div class="skill-group">
+        <h3>// Ansible</h3>
+        <ul class="skill-list">
+          <li>Playbook authoring with become: yes</li>
+          <li>dnf module (Amazon Linux 2023)</li>
+          <li>copy module for file deployment</li>
+          <li>service module for process management</li>
+          <li>inventory.ini SSH configuration</li>
+          <li>Idempotency verification</li>
+        </ul>
+      </div>
+      <div class="skill-group">
+        <h3>// AWS</h3>
+        <ul class="skill-list">
+          <li>EC2 provisioning with IAM instance profile</li>
+          <li>S3 bucket management</li>
+          <li>IAM roles and policy attachments</li>
+          <li>Security groups (inbound/outbound rules)</li>
+          <li>SSH key pair provisioning via Terraform</li>
+          <li>Regional vs. global service awareness</li>
+        </ul>
+      </div>
+      <div class="skill-group">
+        <h3>// Process & Tooling</h3>
+        <ul class="skill-list">
+          <li>SSH key-based Git authentication</li>
+          <li>Version control from project start</li>
+          <li>AMI ID region verification workflow</li>
+          <li>S3 global namespace conflict resolution</li>
+          <li>Clean infrastructure teardown</li>
+          <li>Structured troubleshooting documentation</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">github.com/leyder-ben/tc3-terraform-ansible · AWS us-east-2 · May 2026</div>
+    <div class="footer-links">
+      <a href="https://github.com/leyder-ben/tc3-terraform-ansible">View Repository ↗</a>
+      <a href="https://github.com/leyder-ben">GitHub</a>
+      <a href="https://www.linkedin.com/in/ben-leyder-a79550141/">LinkedIn</a>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
