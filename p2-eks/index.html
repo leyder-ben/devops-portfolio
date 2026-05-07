@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ben Leyder – Multi-Tier Kubernetes Deployment on AWS EKS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e13;
+      --bg2: #0f1419;
+      --bg3: #161d26;
+      --border: #1e2a38;
+      --border2: #243040;
+      --text: #c8d8e8;
+      --text2: #7a9ab8;
+      --text3: #4a6a88;
+      --accent: #38bdf8;
+      --accent2: #0ea5e9;
+      --green: #34d399;
+      --orange: #fb923c;
+      --red: #f87171;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10,14,19,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-brand span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    /* HERO */
+    .hero {
+      padding: 8rem 2rem 4rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .breadcrumb {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      margin-bottom: 2rem;
+    }
+
+    .breadcrumb a {
+      color: var(--text3);
+      text-decoration: none;
+    }
+
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb span { color: var(--accent); margin: 0 0.5rem; }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 600;
+      color: #e8f4ff;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text2);
+      max-width: 680px;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+
+    .tag.accent {
+      border-color: rgba(56,189,248,0.3);
+      color: var(--accent);
+      background: rgba(56,189,248,0.05);
+    }
+
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 5rem;
+    }
+
+    .stat {
+      background: var(--bg2);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: block;
+    }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    /* SECTIONS */
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+    }
+
+    h2 {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ARCH DIAGRAM */
+    .arch-diagram {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text2);
+      line-height: 2;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    .arch-accent { color: var(--accent); }
+    .arch-green { color: var(--green); }
+    .arch-orange { color: var(--orange); }
+
+    .arch-note {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.7;
+      padding: 1.25rem 1.5rem;
+      border-left: 2px solid var(--accent);
+      background: rgba(56,189,248,0.03);
+      margin-bottom: 1.5rem;
+    }
+
+    /* WHAT I BUILT */
+    .build-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .build-item {
+      background: var(--bg2);
+      padding: 1.75rem;
+    }
+
+    .build-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    .build-title {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+
+    .build-title span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-weight: 400;
+      margin-top: 0.15rem;
+    }
+
+    .build-body {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+
+    .build-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .build-tag {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text3);
+      border: 1px solid var(--border2);
+      padding: 0.15rem 0.45rem;
+    }
+
+    /* TROUBLESHOOTING */
+    .issue-block {
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .issue-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .issue-badge {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.5rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .issue-badge.issue {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red);
+    }
+
+    .issue-badge.resolved {
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.3);
+      color: var(--green);
+    }
+
+    .issue-text {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    .issue-resolution {
+      padding: 1.25rem 1.5rem;
+      background: var(--bg);
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+
+    .issue-resolution code,
+    .issue-text code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: rgba(56,189,248,0.08);
+      padding: 0.1rem 0.35rem;
+    }
+
+    /* LOAD TEST RESULTS */
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+
+    .results-table td {
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+      vertical-align: top;
+    }
+
+    .results-table td:first-child {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      white-space: nowrap;
+      width: 40%;
+    }
+
+    .results-table td:last-child {
+      color: var(--text);
+    }
+
+    .results-table tr:last-child td { border-bottom: none; }
+    .results-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .skill-group {
+      background: var(--bg2);
+      padding: 1.5rem;
+    }
+
+    .skill-group-title {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .skill-group ul { list-style: none; }
+
+    .skill-group li {
+      font-size: 0.83rem;
+      color: var(--text2);
+      padding: 0.25rem 0;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .skill-group li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* FOOTER */
+    footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-meta {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      line-height: 1.8;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .build-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+      nav { padding: 1rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../" class="nav-brand">// <span>LEYDER-BEN</span></a>
+  <ul class="nav-links">
+    <li><a href="#architecture">ARCHITECTURE</a></li>
+    <li><a href="#built">WHAT I BUILT</a></li>
+    <li><a href="#troubleshooting">TROUBLESHOOTING</a></li>
+    <li><a href="#results">LOAD TEST</a></li>
+    <li><a href="#skills">SKILLS</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="breadcrumb">
+    <a href="../">portfolio</a>
+    <span>/</span>
+    devops
+    <span>/</span>
+    kubernetes infrastructure
+  </div>
+
+  <div class="hero-label">MAY 2026</div>
+
+  <h1>Multi-Tier Kubernetes<br>Deployment on <em>AWS EKS</em></h1>
+
+  <p style="font-family:'IBM Plex Mono',monospace; font-size:0.85rem; color:#4a6a88; letter-spacing:0.08em; margin-bottom:2rem;">Terraform · MySQL · WordPress · Secrets Manager · HPA</p>
+
+  <p class="hero-desc">
+    Provisioned a production-grade EKS cluster with Terraform, deployed a two-tier WordPress and MySQL application via Helm, managed all database credentials through AWS Secrets Manager with the External Secrets Operator syncing them into the cluster automatically, and verified horizontal autoscaling under real load with Siege.
+  </p>
+
+  <div class="tag-row">
+    <span class="tag accent">AWS EKS</span>
+    <span class="tag accent">Terraform</span>
+    <span class="tag accent">Kubernetes</span>
+    <span class="tag accent">Helm</span>
+    <span class="tag accent">AWS Secrets Manager</span>
+    <span class="tag">MySQL</span>
+    <span class="tag">WordPress</span>
+    <span class="tag">External Secrets Operator</span>
+    <span class="tag">HPA</span>
+    <span class="tag">EBS CSI Driver</span>
+    <span class="tag">IRSA</span>
+    <span class="tag">Siege</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <span class="stat-value">127%</span>
+      <span class="stat-label">Peak CPU Under Load</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">3</span>
+      <span class="stat-label">Max Replicas Scaled</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">2,095</span>
+      <span class="stat-label">Successful Requests</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">94.4%</span>
+      <span class="stat-label">Availability Under Load</span>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Architecture</h2>
+  </div>
+
+  <div class="arch-diagram">
+<span class="arch-accent">// INFRASTRUCTURE LAYER — Terraform</span>
+VPC (10.0.0.0/16)
+  ├── Public Subnet us-east-2a (10.0.1.0/24)
+  └── Public Subnet us-east-2b (10.0.2.0/24)
+        │
+        └──▶ <span class="arch-orange">EKS Cluster (p2-eks-cluster)</span>
+               ├── Node Group: 2x t3.medium (1 min / 4 max)
+               ├── vpc-cni addon (before_compute = true)
+               ├── coredns addon
+               ├── kube-proxy addon
+               └── aws-ebs-csi-driver addon (IRSA-backed IAM role)
+
+<span class="arch-accent">// SECRETS LAYER — AWS Secrets Manager + ESO</span>
+<span class="arch-green">Secrets Manager</span> (p2/mysql-credentials)
+  │   root-password · wp-password · wp-user · wp-database
+  │
+  └──▶ <span class="arch-accent">External Secrets Operator</span> (Helm, namespace: external-secrets)
+         │   SecretStore ──▶ IRSA-backed IAM role ──▶ Secrets Manager
+         └──▶ ExternalSecret ──▶ Kubernetes Secret (mysql-secret)
+                                      │
+                        ┌─────────────┴─────────────┐
+                        ▼                           ▼
+<span class="arch-orange">MySQL Deployment</span>                  <span class="arch-accent">WordPress Deployment</span>
+  mysql:8.0                           wordpress:latest
+  PVC: 10Gi EBS (gp2)                 Helm chart (my-microservice)
+  ClusterIP Service                   LoadBalancer Service
+  (internal only)                           │
+                                            ▼
+                                    <span class="arch-green">AWS ELB</span> (auto-provisioned)
+                                            │
+                                      Public Internet
+
+<span class="arch-accent">// AUTOSCALING LAYER — HPA</span>
+HPA (wordpress-hpa)
+  Target: my-microservice deployment
+  Threshold: 50% CPU
+  Min: 1 replica / Max: 5 replicas
+  </div>
+
+  <p class="arch-note">
+    <strong>Key design decision:</strong> Terraform owns the bottom half of the stack — VPC, EKS cluster, IAM roles, OIDC provider, and the Secrets Manager secret. Helm owns the top half — MySQL, WordPress, services, and HPA. AWS Secrets Manager sits in the middle: Terraform creates it, the External Secrets Operator pulls credentials into a Kubernetes Secret automatically on a 1-hour refresh interval. Rotating a password in Secrets Manager updates the cluster without touching a running deployment.
+  </p>
+
+  <p class="arch-note" style="border-left-color: var(--orange);">
+    <strong>IRSA pattern used twice:</strong> Both the External Secrets Operator and the EBS CSI driver use IAM Roles for Service Accounts — pod-level IAM permissions via OIDC federation, no static credentials anywhere in the cluster.
+  </p>
+</section>
+
+<!-- WHAT I BUILT -->
+<section class="section" id="built">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>What I Built</h2>
+  </div>
+
+  <div class="build-grid">
+    <div class="build-item">
+      <div class="build-num">01</div>
+      <div class="build-title">Infrastructure as Code — Terraform
+        <span>VPC · EKS · IAM · OIDC · Secrets Manager</span>
+      </div>
+      <p class="build-body">Four Terraform files provisioning the full infrastructure layer: custom VPC with two public subnets across two AZs, EKS cluster with managed node group, all four cluster addons including the EBS CSI driver, IAM roles for the ESO and EBS CSI driver via OIDC, and an AWS Secrets Manager secret holding all database credentials. No manual steps — a single <code>terraform apply</code> builds everything.</p>
+      <div class="build-tags">
+        <span class="build-tag">terraform</span>
+        <span class="build-tag">vpc</span>
+        <span class="build-tag">eks</span>
+        <span class="build-tag">iam</span>
+        <span class="build-tag">oidc</span>
+        <span class="build-tag">secrets manager</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">02</div>
+      <div class="build-title">Secrets Management — ESO + Secrets Manager
+        <span>IRSA · Auto-Sync · Zero Static Credentials</span>
+      </div>
+      <p class="build-body">AWS Secrets Manager holds all four database credential fields. The External Secrets Operator is installed via Helm and configured with a SecretStore pointing at Secrets Manager through an IRSA-backed IAM role. An ExternalSecret object maps the credential keys into a Kubernetes Secret that MySQL and WordPress both consume via environment variables. Credentials rotate in Secrets Manager — the cluster follows automatically.</p>
+      <div class="build-tags">
+        <span class="build-tag">external secrets operator</span>
+        <span class="build-tag">secrets manager</span>
+        <span class="build-tag">irsa</span>
+        <span class="build-tag">secretstore</span>
+        <span class="build-tag">externalsecret</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">03</div>
+      <div class="build-title">MySQL — Persistent Database Tier
+        <span>EBS PVC · ClusterIP · Credential Injection</span>
+      </div>
+      <p class="build-body">MySQL 8.0 deployed as a single pod with a 10Gi EBS-backed PersistentVolumeClaim — data survives pod restarts and rescheduling. All four credentials (root password, DB name, username, password) are injected from the Kubernetes Secret via environment variables. Exposed internally via a ClusterIP service with <code>clusterIP: None</code> so WordPress reaches it by service name. Nothing external can reach MySQL directly.</p>
+      <div class="build-tags">
+        <span class="build-tag">mysql</span>
+        <span class="build-tag">pvc</span>
+        <span class="build-tag">ebs</span>
+        <span class="build-tag">clusterip</span>
+        <span class="build-tag">gp2</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">04</div>
+      <div class="build-title">WordPress — Helm Deployment
+        <span>LoadBalancer · Env Injection · Custom Values</span>
+      </div>
+      <p class="build-body">WordPress deployed via a custom Helm chart with a patched deployment template to pass the env block from values.yaml to the container. Database connection details read from the Kubernetes Secret at startup. Exposed to the internet via a LoadBalancer service that provisions an AWS ELB automatically. Resource limits set to 768Mi memory and 500m CPU to handle concurrent traffic without OOMKills.</p>
+      <div class="build-tags">
+        <span class="build-tag">helm</span>
+        <span class="build-tag">wordpress</span>
+        <span class="build-tag">loadbalancer</span>
+        <span class="build-tag">elb</span>
+        <span class="build-tag">env injection</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">05</div>
+      <div class="build-title">Horizontal Pod Autoscaler
+        <span>50% CPU Threshold · 1–5 Replicas · Metrics Server</span>
+      </div>
+      <p class="build-body">HPA configured against the WordPress deployment with a 50% CPU utilization target and a ceiling of 5 replicas. Metrics Server installed to feed real CPU data to the HPA controller. Under Siege load, CPU spiked to 127% on the initial pod — the HPA scaled from 1 to 3 replicas within one minute. New pods went from Pending to Running in under two seconds. Scale-down completed within 5 minutes after load stopped.</p>
+      <div class="build-tags">
+        <span class="build-tag">hpa</span>
+        <span class="build-tag">metrics server</span>
+        <span class="build-tag">autoscaling</span>
+        <span class="build-tag">cpu threshold</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">06</div>
+      <div class="build-title">EBS CSI Driver — Storage Provisioning
+        <span>IRSA · gp2 StorageClass · Dynamic Provisioning</span>
+      </div>
+      <p class="build-body">EKS 1.31 requires the EBS CSI driver addon for dynamic EBS volume provisioning — the in-tree provisioner is removed. The driver runs with its own IRSA-backed IAM role bound to the <code>ebs-csi-controller-sa</code> service account, granting the EC2 and EBS permissions the controller needs. Managed as an EKS addon in Terraform so it provisions automatically with the cluster and tears down cleanly with <code>terraform destroy</code>.</p>
+      <div class="build-tags">
+        <span class="build-tag">ebs csi driver</span>
+        <span class="build-tag">irsa</span>
+        <span class="build-tag">storageclass</span>
+        <span class="build-tag">dynamic provisioning</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TROUBLESHOOTING -->
+<section class="section" id="troubleshooting">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Problems I Solved</h2>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Node group <code>CREATE_FAILED</code> with <code>Ec2SubnetInvalidConfiguration</code>. Nodes couldn't join the cluster because the VPC subnets weren't configured to auto-assign public IPs — instances launched into those subnets had no public IP and couldn't reach the EKS control plane.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Added <code>map_public_ip_on_launch = true</code> to the VPC module block in <code>main.tf</code>. The <code>terraform-aws-modules</code> VPC module doesn't enable this by default — it has to be set explicitly. Ran <code>terraform destroy</code> and re-applied clean.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text"><code>kubectl apply</code> on the SecretStore manifest failed with <code>no matches for kind SecretStore in version external-secrets.io/v1beta1</code>. The installed version of ESO had promoted the CRDs from <code>v1beta1</code> to <code>v1</code>.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Ran <code>kubectl api-resources | grep external-secrets</code> to confirm the correct API version, then updated <code>apiVersion</code> in both <code>secretstore.yaml</code> and <code>externalsecret.yaml</code> from <code>external-secrets.io/v1beta1</code> to <code>external-secrets.io/v1</code>.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">PVC and MySQL pod both stuck in <code>Pending</code> for 7+ minutes. No storageClassName set on the PVC — Kubernetes had no provisioner to request a volume from. Combined with the cluster's <code>WaitForFirstConsumer</code> binding mode, the PVC and pod were deadlocked.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Added <code>storageClassName: gp2</code> to the PVC spec. Then discovered the EBS CSI driver wasn't installed — <code>kubectl describe pvc</code> showed Kubernetes waiting on <code>ebs.csi.aws.com</code>. Installed the <code>aws-ebs-csi-driver</code> addon. EKS 1.21+ requires the CSI driver — the in-tree provisioner is gone.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">EBS CSI controller pods in <code>CrashLoopBackOff</code>. Logs showed <code>UnauthorizedOperation</code> on <code>ec2:DescribeAvailabilityZones</code>. The controller was running under the node IAM role which had no EC2 API permissions. Addon stuck in <code>CREATING</code> — couldn't be updated in that state.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Added a dedicated IRSA-backed IAM role to <code>main.tf</code> with the <code>AmazonEBSCSIDriverPolicy</code> managed policy, bound to the <code>ebs-csi-controller-sa</code> service account in kube-system. Applied with Terraform, then deleted and recreated the addon with <code>--service-account-role-arn</code> set from the start. Now managed as a Terraform addon block so it provisions correctly on every apply.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text"><code>helm install</code> failed twice in succession — first with nil pointer on <code>serviceAccount.create</code>, then on <code>httpRoute.enabled</code>. Both values were stripped when the entire <code>values.yaml</code> was replaced with the WordPress configuration.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Added <code>serviceAccount: create: false</code> and <code>httpRoute: enabled: false</code> back to <code>values.yaml</code>. Newer Helm scaffold versions include an httproute template that older documentation doesn't account for — every template in the chart needs its required values present even if the feature is disabled.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">MySQL rejecting all credentials — <code>Access Denied</code> for both root and wordpress_user with the correct passwords. WordPress showed "Error establishing a database connection." MySQL had initialized its data directory during a previous failed deployment with different credentials — once written to the PVC, those credentials are locked in.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Deleted the MySQL deployment and PVC to wipe the data directory completely, then redeployed so MySQL could reinitialize from scratch using the correct credentials from the Kubernetes Secret. MySQL writes credentials into the data directory on first startup — a stale PVC from a failed deployment will always cause auth failures on the next deploy.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">WordPress pod <code>OOMKilled</code> under Siege load before CPU could spike high enough to trigger the HPA. The 512Mi memory limit was too tight for WordPress handling 100 concurrent users with active database queries. Pod died before autoscaling could respond.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp; Increased memory limit to 768Mi and request to 384Mi in <code>values.yaml</code>, then ran <code>helm upgrade</code> to apply without tearing down the deployment. Second Siege run completed successfully — CPU hit 127%, HPA scaled to 3 replicas, availability reached 94.4%.
+    </div>
+  </div>
+</section>
+
+<!-- LOAD TEST RESULTS -->
+<section class="section" id="results">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Load Test Results</h2>
+  </div>
+
+  <p style="font-size:0.88rem; color:var(--text2); line-height:1.65; margin-bottom:1.5rem;">
+    Siege ran 100 concurrent users for 5 minutes against the WordPress ELB endpoint with WordPress fully connected to MySQL — each request triggered real database queries, not a cached static response.
+  </p>
+
+  <table class="results-table">
+    <tbody>
+      <tr>
+        <td>Successful Transactions</td>
+        <td><span style="font-family:var(--mono); color:var(--green);">2,095</span></td>
+      </tr>
+      <tr>
+        <td>Availability</td>
+        <td><span style="font-family:var(--mono); color:var(--green);">94.41%</span></td>
+      </tr>
+      <tr>
+        <td>Failed Transactions</td>
+        <td>124</td>
+      </tr>
+      <tr>
+        <td>Peak CPU Usage</td>
+        <td><span style="font-family:var(--mono); color:var(--accent);">127%</span> — well above the 50% HPA threshold</td>
+      </tr>
+      <tr>
+        <td>Replicas at Peak</td>
+        <td><span style="font-family:var(--mono); color:var(--accent);">3</span> (scaled from 1)</td>
+      </tr>
+      <tr>
+        <td>Time to First Scale Event</td>
+        <td>~1 minute after Siege started</td>
+      </tr>
+      <tr>
+        <td>Pod Startup Time</td>
+        <td>Pending → Running in under 2 seconds</td>
+      </tr>
+      <tr>
+        <td>Scale-Down After Load</td>
+        <td>Returned to 1 replica within 5 minutes</td>
+      </tr>
+      <tr>
+        <td>Data Transferred</td>
+        <td>13.65 MB</td>
+      </tr>
+      <tr>
+        <td>Peak Concurrency</td>
+        <td>93.13 of 100 users active</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>Skills Demonstrated</h2>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-group">
+      <div class="skill-group-title">// Cloud & Infrastructure</div>
+      <ul>
+        <li>AWS EKS managed node groups</li>
+        <li>VPC with public subnets across 2 AZs</li>
+        <li>AWS Secrets Manager</li>
+        <li>EBS CSI driver addon</li>
+        <li>IAM roles via OIDC federation (IRSA)</li>
+        <li>EBS PersistentVolumeClaim (gp2)</li>
+        <li>AWS ELB via LoadBalancer service</li>
+      </ul>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">// Kubernetes & Helm</div>
+      <ul>
+        <li>EKS cluster provisioning with Terraform</li>
+        <li>Helm chart authoring and patching</li>
+        <li>Horizontal Pod Autoscaling</li>
+        <li>External Secrets Operator</li>
+        <li>SecretStore and ExternalSecret objects</li>
+        <li>Metrics Server installation</li>
+        <li>Multi-tier pod networking</li>
+      </ul>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">// DevOps & Troubleshooting</div>
+      <ul>
+        <li>Terraform IaC (4 config files)</li>
+        <li>Git version control from day one</li>
+        <li>kubectl diagnostics and log analysis</li>
+        <li>CrashLoopBackOff root cause analysis</li>
+        <li>IAM permission debugging</li>
+        <li>Load testing with Siege</li>
+        <li>Autoscaling verification under real load</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-meta">
+    github.com/leyder-ben/p2-eks-wordpress · AWS us-east-2 · May 2026
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/leyder-ben/p2-eks-wordpress" target="_blank" style="font-family:'IBM Plex Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; padding:0.5rem 1rem; border:1px solid rgba(56,189,248,0.4); color:#38bdf8; text-decoration:none; background:rgba(56,189,248,0.05); transition:all 0.2s;">View Repository ↗</a>
+    <a href="https://github.com/leyder-ben" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/ben-leyder-a79550141/" target="_blank">LinkedIn</a>
+  </div>
+</footer>
+
+</body>
+</html>
