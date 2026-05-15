@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ben Leyder – Legacy System Migration to AWS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0e13;
+      --bg2: #0f1419;
+      --bg3: #161d26;
+      --border: #1e2a38;
+      --border2: #243040;
+      --text: #c8d8e8;
+      --text2: #7a9ab8;
+      --text3: #4a6a88;
+      --accent: #38bdf8;
+      --accent2: #0ea5e9;
+      --green: #34d399;
+      --orange: #fb923c;
+      --red: #f87171;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10,14,19,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    /* HERO */
+    .hero {
+      padding: 8rem 2rem 4rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .breadcrumb {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      margin-bottom: 2rem;
+    }
+    .breadcrumb a {
+      color: var(--text3);
+      text-decoration: none;
+    }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb span { color: var(--accent); margin: 0 0.5rem; }
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 600;
+      color: #e8f4ff;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text2);
+      max-width: 680px;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+    .tag.accent {
+      border-color: rgba(56,189,248,0.3);
+      color: var(--accent);
+      background: rgba(56,189,248,0.05);
+    }
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 5rem;
+    }
+    .stat {
+      background: var(--bg2);
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: block;
+    }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+    /* SECTIONS */
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 5rem;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+    }
+    h2 {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    /* ARCH DIAGRAM */
+    .arch-diagram {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text2);
+      line-height: 2;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+      white-space: pre;
+    }
+    .arch-accent { color: var(--accent); }
+    .arch-green { color: var(--green); }
+    .arch-orange { color: var(--orange); }
+    .arch-note {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.7;
+      padding: 1.25rem 1.5rem;
+      border-left: 2px solid var(--accent);
+      background: rgba(56,189,248,0.03);
+      margin-bottom: 1.5rem;
+    }
+    /* WHAT I BUILT */
+    .build-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .build-item {
+      background: var(--bg2);
+      padding: 1.75rem;
+    }
+    .build-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+    .build-title {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .build-title span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-weight: 400;
+      margin-top: 0.15rem;
+    }
+    .build-body {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+    .build-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .build-tag {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text3);
+      border: 1px solid var(--border2);
+      padding: 0.15rem 0.45rem;
+    }
+    /* TROUBLESHOOTING */
+    .issue-block {
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+    }
+    .issue-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+    .issue-badge {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.5rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .issue-badge.issue {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red);
+    }
+    .issue-badge.resolved {
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.3);
+      color: var(--green);
+    }
+    .issue-text {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+    .issue-resolution {
+      padding: 1.25rem 1.5rem;
+      background: var(--bg);
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+    .issue-resolution code,
+    .issue-text code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: rgba(56,189,248,0.08);
+      padding: 0.1rem 0.35rem;
+    }
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .skill-group {
+      background: var(--bg2);
+      padding: 1.5rem;
+    }
+    .skill-group-title {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .skill-group ul { list-style: none; }
+    .skill-group li {
+      font-size: 0.83rem;
+      color: var(--text2);
+      padding: 0.25rem 0;
+      padding-left: 1rem;
+      position: relative;
+    }
+    .skill-group li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+    /* FOOTER */
+    footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-meta {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      line-height: 1.8;
+    }
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .build-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+      nav { padding: 1rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../" class="nav-brand">// <span>LEYDER-BEN</span></a>
+  <ul class="nav-links">
+    <li><a href="#architecture">ARCHITECTURE</a></li>
+    <li><a href="#built">WHAT I BUILT</a></li>
+    <li><a href="#troubleshooting">TROUBLESHOOTING</a></li>
+    <li><a href="#skills">SKILLS</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="breadcrumb">
+    <a href="../">portfolio</a>
+    <span>/</span>
+    devops
+    <span>/</span>
+    cloud migration
+  </div>
+
+  <div class="hero-label">MAY 2026</div>
+
+  <h1>Legacy System Migration<br>to <em>AWS</em></h1>
+
+  <p class="hero-desc">
+    Migrated a WordPress site from aging on-premises infrastructure to AWS — provisioning the full target environment with Terraform, exporting the legacy database with mysqldump, importing into Amazon RDS MySQL in a private subnet, and validating the migration at the database layer before application cutover. A custom PHP verification page provides a second independent proof layer querying RDS directly.
+  </p>
+
+  <div class="tag-row">
+    <span class="tag accent">AWS</span>
+    <span class="tag accent">Terraform</span>
+    <span class="tag accent">RDS MySQL</span>
+    <span class="tag accent">EC2</span>
+    <span class="tag">VPC</span>
+    <span class="tag">Apache</span>
+    <span class="tag">WordPress</span>
+    <span class="tag">Secrets Manager</span>
+    <span class="tag">IAM</span>
+    <span class="tag">PHP</span>
+    <span class="tag">mysqldump</span>
+    <span class="tag">IaC</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <span class="stat-value">18</span>
+      <span class="stat-label">AWS Resources</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">0</span>
+      <span class="stat-label">Data Loss</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">2</span>
+      <span class="stat-label">Proof Artifacts</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">4</span>
+      <span class="stat-label">Terraform Files</span>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Architecture</h2>
+  </div>
+
+  <div class="arch-diagram">
+<span class="arch-accent">// NETWORK LAYER — Terraform</span>
+VPC (10.0.0.0/16)
+ ├── <span class="arch-green">Public Subnet</span>  us-east-2a (10.0.1.0/24)
+ │    └── EC2 t3.micro — Apache · PHP · WordPress
+ │         └── user_data bootstrap (no manual config)
+ │
+ ├── <span class="arch-orange">Private Subnet A</span>  us-east-2a (10.0.2.0/24)  ┐
+ └── <span class="arch-orange">Private Subnet B</span>  us-east-2b (10.0.3.0/24)  ┘ RDS Subnet Group
+      └── RDS MySQL 8.0 (db.t3.micro · 20GB)
+
+<span class="arch-accent">// SECURITY LAYER</span>
+EC2 Security Group
+ ├── Inbound: HTTP 80 · HTTPS 443 · SSH 22 (authorized IP only)
+ └── Outbound: all
+
+RDS Security Group
+ └── Inbound: Port 3306 from EC2 Security Group ID only
+      (no CIDR — only members of the EC2 group can reach MySQL)
+
+<span class="arch-accent">// CREDENTIAL LAYER</span>
+AWS Secrets Manager  ──▶  p1/db-credentials
+ └── username · password · host · db_name
+      └── IAM Instance Profile ──▶ EC2 reads without stored keys
+  </div>
+
+  <div class="arch-note">
+    <strong>Key design decision:</strong> The RDS security group ingress rule references the EC2 security group ID as its source — not a CIDR block. A CIDR rule allows any host in that IP range. A security group rule allows only resources that are explicit members of that group. The database is unreachable from anything except the application server, by design.
+  </div>
+
+  <div class="arch-note">
+    <strong>Tier separation:</strong> The original system ran MySQL on the same box as Apache and WordPress — a single point of failure with no path to scale. Moving the database to RDS in a private subnet means the web tier and database tier can be scaled, patched, and backed up independently. AWS handles RDS patching and automated backups. The application layer doesn't need to care about database operations.
+  </div>
+</section>
+
+<!-- WHAT I BUILT -->
+<section class="section" id="built">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>What I Built</h2>
+  </div>
+
+  <div class="build-grid">
+
+    <div class="build-item">
+      <div class="build-num">01</div>
+      <div class="build-title">Infrastructure as Code — Terraform
+        <span>VPC · EC2 · RDS · IAM · Secrets Manager</span>
+      </div>
+      <p class="build-body">Four Terraform files provisioning 18 AWS resources: VPC with public and private subnets across two AZs, internet gateway, route tables, EC2 web server with user_data bootstrap, RDS MySQL 8.0 in a private subnet group, security groups with least-privilege rules, IAM role with instance profile, and Secrets Manager secret holding the database credentials. A single <code>terraform apply</code> builds the complete target environment.</p>
+      <div class="build-tags">
+        <span class="build-tag">terraform</span>
+        <span class="build-tag">vpc</span>
+        <span class="build-tag">ec2</span>
+        <span class="build-tag">rds</span>
+        <span class="build-tag">iam</span>
+        <span class="build-tag">secrets manager</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">02</div>
+      <div class="build-title">Database Migration — mysqldump to RDS
+        <span>Export · Validate · Import · Verify</span>
+      </div>
+      <p class="build-body">The legacy database was exported using <code>mysqldump</code> — the standard MySQL portable export tool. Before importing, network connectivity from EC2 to the private RDS endpoint was validated with a live <code>SHOW DATABASES</code> query. The data was loaded into RDS using explicit INSERT statements with full column mapping to account for schema differences between the source and the WordPress 6.x target. Each migrated table was queried post-import to confirm content matched the source before the application was reconfigured.</p>
+      <div class="build-tags">
+        <span class="build-tag">mysqldump</span>
+        <span class="build-tag">mysql client</span>
+        <span class="build-tag">rds mysql 8.0</span>
+        <span class="build-tag">schema migration</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">03</div>
+      <div class="build-title">Automated Server Bootstrap — user_data
+        <span>Zero Manual Configuration</span>
+      </div>
+      <p class="build-body">The EC2 instance runs a shell script on first boot that installs Apache, PHP, the MySQL client, and WordPress, sets file permissions, and places WordPress files in the web root. By the time <code>terraform apply</code> completes, the web server is fully configured. No SSH session required to set up the box. Infrastructure configuration lives in code, not in runbooks.</p>
+      <div class="build-tags">
+        <span class="build-tag">user_data</span>
+        <span class="build-tag">apache</span>
+        <span class="build-tag">php 8.1</span>
+        <span class="build-tag">wordpress</span>
+        <span class="build-tag">ubuntu 22.04</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">04</div>
+      <div class="build-title">Credential Management — Secrets Manager
+        <span>No Hardcoded Credentials Anywhere</span>
+      </div>
+      <p class="build-body">The RDS master password is stored in AWS Secrets Manager at <code>p1/db-credentials</code> alongside the host, username, and database name. The EC2 instance retrieves credentials through an IAM instance profile — no access keys stored on the box, no credentials in version-controlled files. This is the correct AWS pattern for application credential management at any scale.</p>
+      <div class="build-tags">
+        <span class="build-tag">secrets manager</span>
+        <span class="build-tag">iam instance profile</span>
+        <span class="build-tag">ssm policy</span>
+        <span class="build-tag">zero stored keys</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">05</div>
+      <div class="build-title">Private Subnet Network Architecture
+        <span>Defense in Depth at the Network Layer</span>
+      </div>
+      <p class="build-body">RDS lives in a private subnet with no internet gateway route — there is no path from the public internet to the database. The RDS security group allows port 3306 inbound from the EC2 security group ID only. Two private subnets across two availability zones satisfy the RDS subnet group requirement and position the database for multi-AZ failover if needed. The web tier is publicly accessible; the data tier is not.</p>
+      <div class="build-tags">
+        <span class="build-tag">private subnet</span>
+        <span class="build-tag">security groups</span>
+        <span class="build-tag">multi-az</span>
+        <span class="build-tag">defense in depth</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">06</div>
+      <div class="build-title">PHP Verification Page — Independent Proof Layer
+        <span>Direct RDS Query · No WordPress Abstraction</span>
+      </div>
+      <p class="build-body">A custom PHP page deployed alongside WordPress connects directly to RDS, queries <code>wp_posts</code> and <code>wp_options</code>, and renders the migrated data as a styled HTML page — completely independent of WordPress. Two separate code paths confirming the same data is present and accessible: the WordPress site rendering migrated content as the homepage, and the PHP page returning raw query results from the same RDS instance.</p>
+      <div class="build-tags">
+        <span class="build-tag">php</span>
+        <span class="build-tag">mysqli</span>
+        <span class="build-tag">rds validation</span>
+        <span class="build-tag">wp_posts</span>
+        <span class="build-tag">wp_options</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TROUBLESHOOTING -->
+<section class="section" id="troubleshooting">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Problems I Solved</h2>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">SSH to EC2 hung indefinitely after <code>terraform apply</code> completed. No connection refused — just silence.</span>
+    </div>
+    <div class="issue-header">
+      <span class="issue-badge resolved">RESOLVED</span>
+      <span class="issue-text">The EC2 security group restricts SSH to port 22 from a single IP — the one provided at apply time via the <code>your_ip</code> variable. The wrong IP had been entered. Security groups silently drop packets that don't match any allow rule rather than sending a rejection, which is why the connection hung instead of failing. Confirmed the correct IP with <code>curl ifconfig.me</code>, then ran <code>terraform apply -var="your_ip=&lt;correct_ip&gt;"</code> to update the rule. No other resources were modified.</span>
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text"><code>mysqldump -u root</code> returned <code>Access denied for user 'root'@'localhost'</code> without sudo.</span>
+    </div>
+    <div class="issue-header">
+      <span class="issue-badge resolved">RESOLVED</span>
+      <span class="issue-text">Ubuntu's MySQL package configures the root account with the <code>auth_socket</code> plugin by default, which requires the OS user to match the MySQL user. The <code>ubuntu</code> system user is not <code>root</code>, so the connection is rejected without elevation. Prefixed with <code>sudo</code>: <code>sudo mysqldump -u root --no-tablespaces legacy_wordpress &gt; /tmp/dump.sql</code></span>
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">WordPress returned a blank white screen after connecting to RDS. Apache error log showed <code>Unknown column 'autoload' in 'field list'</code> and <code>Unknown column 'wp_posts.post_type' in 'where clause'</code> repeatedly.</span>
+    </div>
+    <div class="issue-header">
+      <span class="issue-badge resolved">RESOLVED</span>
+      <span class="issue-text">The source database tables were built against an older schema. WordPress 6.x requires additional columns not present in the imported structure — including <code>autoload</code> in <code>wp_options</code> and <code>post_type</code> in <code>wp_posts</code>. Dropped the imported tables, ran the WordPress installation wizard against the empty database to build the correct full schema, then inserted the migrated content using explicit INSERT statements with full column mapping. WordPress builds its own schema — the migration supplies only the data rows.</span>
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Replaying the mysqldump file after WordPress had installed its schema broke the installation again — blank white screen, admin login unresponsive.</span>
+    </div>
+    <div class="issue-header">
+      <span class="issue-badge resolved">RESOLVED</span>
+      <span class="issue-text">A standard mysqldump includes <code>DROP TABLE IF EXISTS</code> and <code>CREATE TABLE</code> before the data rows. Importing it into a database with a correctly structured WordPress schema drops and replaces those tables with the older source versions. Used explicit <code>INSERT INTO</code> statements with named columns instead — this loads the data into the existing schema without touching the table structure. The <code>--no-create-info</code> flag produces a data-only export but still failed with a column count mismatch because the source had fewer columns than the target. Explicit inserts were the correct solution.</span>
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">PHP verification page returned HTTP 500. Apache log showed <code>PHP Fatal error: Uncaught mysqli_sql_exception: Access denied</code>.</span>
+    </div>
+    <div class="issue-header">
+      <span class="issue-badge resolved">RESOLVED</span>
+      <span class="issue-text">PHP 8.1 enables <code>MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT</code> by default, causing mysqli to throw uncaught exceptions on connection failure rather than setting <code>connect_error</code>. The exception fired before the error handling block could run. Added <code>mysqli_report(MYSQLI_REPORT_OFF)</code> at the top of the script to restore the traditional behavior. A secondary cause was an incorrect database password in the file — corrected after confirming the connection error was network-layer, not code-layer.</span>
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">WordPress Settings &gt; Reading static front page dropdown only showed the default sample page — migrated content was not available as an option.</span>
+    </div>
+    <div class="issue-header">
+      <span class="issue-badge resolved">RESOLVED</span>
+      <span class="issue-text">WordPress populates the static front page dropdown exclusively from content with <code>post_type = 'page'</code>. The migrated records had been inserted with <code>post_type = 'post'</code>. Updated directly in RDS: <code>UPDATE wp_posts SET post_type='page' WHERE post_title IN ('Welcome to Our New Cloud Home','Legacy Data Confirmed Intact');</code> — both pages appeared in the dropdown after refreshing the settings screen.</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Skills Demonstrated</h2>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-group">
+      <div class="skill-group-title">// Cloud & Infrastructure</div>
+      <ul>
+        <li>AWS VPC with public/private subnets</li>
+        <li>Amazon RDS MySQL 8.0</li>
+        <li>EC2 with user_data bootstrap</li>
+        <li>AWS Secrets Manager</li>
+        <li>IAM roles and instance profiles</li>
+        <li>Security group architecture</li>
+        <li>Multi-AZ subnet design</li>
+      </ul>
+    </div>
+    <div class="skill-group">
+      <div class="skill-group-title">// Migration & Database</div>
+      <ul>
+        <li>mysqldump export workflow</li>
+        <li>RDS import and validation</li>
+        <li>Schema compatibility analysis</li>
+        <li>Pre-cutover data verification</li>
+        <li>Explicit INSERT with column mapping</li>
+        <li>MySQL client diagnostics</li>
+        <li>WordPress database structure</li>
+      </ul>
+    </div>
+    <div class="skill-group">
+      <div class="skill-group-title">// DevOps & Tooling</div>
+      <ul>
+        <li>Terraform IaC (4 config files)</li>
+        <li>Git version control</li>
+        <li>Apache web server configuration</li>
+        <li>PHP 8.1 application deployment</li>
+        <li>Linux system administration</li>
+        <li>Security group ID vs CIDR rules</li>
+        <li>Credential management patterns</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-meta">
+    github.com/leyder-ben/p1-legacy-migration · AWS us-east-2 · May 2026
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/leyder-ben/p1-legacy-migration" target="_blank">View Repository ↗</a>
+    <a href="https://github.com/leyder-ben" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/ben-leyder-a79550141/" target="_blank">LinkedIn</a>
+  </div>
+</footer>
+
+</body>
+</html>
