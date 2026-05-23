@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ben Leyder – Whetstone Platform: Production SaaS on AWS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0e13;
+      --bg2: #0f1419;
+      --bg3: #161d26;
+      --border: #1e2a38;
+      --border2: #243040;
+      --text: #c8d8e8;
+      --text2: #7a9ab8;
+      --text3: #4a6a88;
+      --accent: #38bdf8;
+      --accent2: #0ea5e9;
+      --green: #34d399;
+      --orange: #fb923c;
+      --red: #f87171;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(10,14,19,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .hero {
+      padding: 8rem 2rem 4rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .breadcrumb {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      margin-bottom: 2rem;
+    }
+    .breadcrumb a {
+      color: var(--text3);
+      text-decoration: none;
+    }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb span { color: var(--accent); margin: 0 0.5rem; }
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 600;
+      color: #e8f4ff;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text2);
+      max-width: 680px;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+    .tag.accent {
+      border-color: rgba(56,189,248,0.3);
+      color: var(--accent);
+      background: rgba(56,189,248,0.05);
+    }
+    .tag.green {
+      border-color: rgba(52,211,153,0.3);
+      color: var(--green);
+      background: rgba(52,211,153,0.05);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 5rem;
+    }
+    .stat {
+      background: var(--bg2);
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: block;
+    }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 5rem;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+    }
+    h2 {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .arch-diagram {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text2);
+      line-height: 2;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+      white-space: pre;
+    }
+    .arch-accent { color: var(--accent); }
+    .arch-green { color: var(--green); }
+    .arch-orange { color: var(--orange); }
+    .arch-red { color: var(--red); }
+    .arch-note {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.7;
+      padding: 1.25rem 1.5rem;
+      border-left: 2px solid var(--accent);
+      background: rgba(56,189,248,0.03);
+      margin-bottom: 1.5rem;
+    }
+    .build-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .build-item {
+      background: var(--bg2);
+      padding: 1.75rem;
+    }
+    .build-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+    .build-title {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .build-title span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-weight: 400;
+      margin-top: 0.15rem;
+    }
+    .build-body {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+    .build-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .build-tag {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text3);
+      border: 1px solid var(--border2);
+      padding: 0.15rem 0.45rem;
+    }
+    .issue-block {
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
+    }
+    .issue-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+    .issue-badge {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.5rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .issue-badge.issue {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--red);
+    }
+    .issue-badge.resolved {
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.3);
+      color: var(--green);
+    }
+    .issue-text {
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+    .issue-resolution {
+      padding: 1.25rem 1.5rem;
+      background: var(--bg);
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+    .issue-resolution code,
+    .issue-text code {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: rgba(56,189,248,0.08);
+      padding: 0.1rem 0.35rem;
+    }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .skill-group {
+      background: var(--bg2);
+      padding: 1.5rem;
+    }
+    .skill-group-title {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .skill-group ul { list-style: none; }
+    .skill-group li {
+      font-size: 0.83rem;
+      color: var(--text2);
+      padding: 0.25rem 0;
+      padding-left: 1rem;
+      position: relative;
+    }
+    .skill-group li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+    footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-meta {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      line-height: 1.8;
+    }
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--green);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .build-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+      nav { padding: 1rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../" class="nav-brand">// <span>LEYDER-BEN</span></a>
+  <ul class="nav-links">
+    <li><a href="#architecture">ARCHITECTURE</a></li>
+    <li><a href="#built">WHAT I BUILT</a></li>
+    <li><a href="#troubleshooting">TROUBLESHOOTING</a></li>
+    <li><a href="#skills">SKILLS</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="breadcrumb">
+    <a href="../">portfolio</a>
+    <span>/</span>
+    saas
+    <span>/</span>
+    production platform
+  </div>
+
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    Live in Production
+  </div>
+
+  <div class="hero-label">MAY 2026 — PRESENT</div>
+
+  <h1>Whetstone Platform<br><em>Production SaaS on AWS</em></h1>
+
+  <p class="hero-desc">
+    Built for a real business. Running in production. Whetstone Platform is a multi-tenant SaaS pricing tool I designed, built, and operate end to end — from the Flask application and database layer through the container infrastructure, CI/CD pipeline, and serverless backend. The problem it solves is real. The infrastructure is production-grade. It has paying subscribers.
+  </p>
+
+  <div class="tag-row">
+    <span class="tag accent">AWS ECS Fargate</span>
+    <span class="tag accent">Terraform</span>
+    <span class="tag accent">AWS Lambda</span>
+    <span class="tag accent">DynamoDB</span>
+    <span class="tag accent">Cognito</span>
+    <span class="tag accent">Python / Flask</span>
+    <span class="tag">API Gateway</span>
+    <span class="tag">GitHub Actions</span>
+    <span class="tag">Stripe</span>
+    <span class="tag">Secrets Manager</span>
+    <span class="tag">Route 53</span>
+    <span class="tag">ACM</span>
+    <span class="tag">Docker</span>
+    <span class="tag">ECR</span>
+    <span class="tag">EventBridge</span>
+    <span class="tag green">LIVE</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <span class="stat-value">&lt;4m</span>
+      <span class="stat-label">Deploy Time</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">0</span>
+      <span class="stat-label">Downtime Deploys</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">28</span>
+      <span class="stat-label">Issues Documented</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">310</span>
+      <span class="stat-label">Products Priced</span>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Architecture</h2>
+  </div>
+
+  <div class="arch-diagram">
+<span class="arch-accent">// APPLICATION LAYER — ECS Fargate</span>
+Route 53 (whetstoneplatform.com)
+ └── ALB (HTTPS · ACM SSL · auto-renewing)
+      └── ECS Fargate Cluster — whetstone-cluster
+           └── ECS Service — whetstone-app (desired: 1, rolling deploy)
+                └── Flask App (Docker container via ECR)
+                     ├── Cognito — USER_PASSWORD_AUTH flow
+                     ├── Google Sheets API v4 — 6 buyer sheets · 310 products
+                     └── Secrets Manager — all credentials at runtime
+
+<span class="arch-accent">// NETWORK LAYER — Terraform</span>
+VPC (us-east-2)
+ ├── <span class="arch-green">Public Subnets</span>  us-east-2a · us-east-2b
+ │    └── ALB
+ └── <span class="arch-orange">Private Subnets</span>  us-east-2a · us-east-2b
+      ├── ECS Tasks (NAT Gateway for outbound)
+      └── No direct internet route inbound
+
+<span class="arch-accent">// SERVERLESS BACKEND — Lambda + API Gateway</span>
+Stripe Webhook ──▶ API Gateway ──▶ Lambda
+ ├── payment_succeeded  → Cognito: create user → DynamoDB: write tenant → SES/Brevo: welcome email
+ ├── invoice_payment_failed → Cognito: disable user → admin alert
+ └── customer_subscription_deleted → Cognito: delete user → DynamoDB: update status
+
+<span class="arch-accent">// CI/CD PIPELINE — GitHub Actions</span>
+git push (main)
+ └── GitHub Actions workflow
+      ├── AWS auth (OIDC-equivalent — dedicated IAM user, least-privilege)
+      ├── ECR login → docker build → docker push (tagged: latest)
+      ├── Register new ECS task definition
+      └── Update ECS service → rolling deployment (zero downtime)
+  </div>
+
+  <div class="arch-note">
+    <strong>Nothing in the console.</strong> Every AWS resource — VPC, subnets, NAT gateway, ALB, ECS cluster, ECR, Secrets Manager, CloudWatch, Route 53, IAM roles — is provisioned and managed with Terraform. The entire infrastructure lifecycle runs from a single <code>terraform apply</code> or <code>terraform destroy</code>. Nothing was clicked into existence manually.
+  </div>
+
+  <div class="arch-note">
+    <strong>No credentials anywhere they shouldn't be.</strong> The ECS task reads all credentials from Secrets Manager at runtime via an IAM task role. The Flask app reads Google credentials from an environment variable injected by ECS — the same <code>get_credentials()</code> helper works whether the source is a file path (local dev) or a JSON string (ECS). Nothing sensitive touches the codebase or sits on disk.
+  </div>
+
+  <div class="arch-note">
+    <strong>Fully automated tenant provisioning.</strong> When a subscriber pays through Stripe, a webhook fires to API Gateway, Lambda processes the event, creates a Cognito user, writes a tenant record to DynamoDB, and sends a welcome email — all without human intervention. Payment failure and cancellation events revoke access automatically on the same path.
+  </div>
+</section>
+
+<!-- WHAT I BUILT -->
+<section class="section" id="built">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>What I Built</h2>
+  </div>
+
+  <div class="build-grid">
+    <div class="build-item">
+      <div class="build-num">01</div>
+      <div class="build-title">Flask Application
+        <span>Pricing aggregator · Quote builder · Auth · Multi-tenant</span>
+      </div>
+      <div class="build-body">
+        A Flask web application that pulls live pricing from 6 buyer Google Sheets via the Sheets API v4, aggregates across 310 products in 23 categories, applies a margin formula, and renders an interactive quote builder. Cognito handles authentication. Session cookies are scoped correctly for production deployment behind an ALB. The app is containerized with Docker and deployed to ECS Fargate — no servers to manage.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">python</span>
+        <span class="build-tag">flask</span>
+        <span class="build-tag">cognito</span>
+        <span class="build-tag">google sheets api v4</span>
+        <span class="build-tag">docker</span>
+        <span class="build-tag">ecs fargate</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">02</div>
+      <div class="build-title">Terraform Infrastructure
+        <span>Full AWS stack · IaC from day one · Clean lifecycle</span>
+      </div>
+      <div class="build-body">
+        Terraform manages the complete AWS environment: VPC with public and private subnets across two AZs, NAT gateway, Application Load Balancer with ACM SSL certificate, ECS Fargate cluster and service, ECR repository with lifecycle policies, Secrets Manager secrets, CloudWatch log group with retention, Route 53 alias records, and all IAM roles with least-privilege policies. One <code>terraform apply</code> builds everything. One <code>terraform destroy</code> tears it all down cleanly.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">terraform</span>
+        <span class="build-tag">vpc</span>
+        <span class="build-tag">alb</span>
+        <span class="build-tag">ecs</span>
+        <span class="build-tag">ecr</span>
+        <span class="build-tag">route 53</span>
+        <span class="build-tag">acm</span>
+        <span class="build-tag">iam</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">03</div>
+      <div class="build-title">GitHub Actions CI/CD
+        <span>Push to live in under 4 minutes · Zero downtime</span>
+      </div>
+      <div class="build-body">
+        Every push to main triggers a GitHub Actions workflow: AWS auth, ECR login, Docker build, image push tagged as latest, new ECS task definition registration, and ECS service update with a rolling deployment strategy. The old task keeps serving traffic until the new one is healthy. End to end under four minutes. No manual deploy steps. A dedicated <code>whetstone-cicd</code> IAM user with least-privilege permissions handles all AWS operations.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">github actions</span>
+        <span class="build-tag">docker</span>
+        <span class="build-tag">ecr</span>
+        <span class="build-tag">ecs rolling deploy</span>
+        <span class="build-tag">iam least-privilege</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">04</div>
+      <div class="build-title">Serverless Onboarding Pipeline
+        <span>Stripe → Lambda → Cognito → DynamoDB → Email</span>
+      </div>
+      <div class="build-body">
+        Stripe webhooks fire to API Gateway on every subscription event. A Lambda function processes the event type: <code>payment_succeeded</code> creates a Cognito user, writes a tenant record to DynamoDB, and sends a welcome email via Brevo SMTP. <code>invoice_payment_failed</code> disables the Cognito account and notifies the admin. <code>customer_subscription_deleted</code> removes access and updates the tenant record. The entire customer lifecycle — signup to cancellation — runs without human intervention.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">lambda</span>
+        <span class="build-tag">api gateway</span>
+        <span class="build-tag">stripe webhooks</span>
+        <span class="build-tag">cognito</span>
+        <span class="build-tag">dynamodb</span>
+        <span class="build-tag">brevo smtp</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">05</div>
+      <div class="build-title">Secrets Management
+        <span>Nothing hardcoded · Nothing on disk · Runtime retrieval</span>
+      </div>
+      <div class="build-body">
+        All credentials live in AWS Secrets Manager under a <code>whetstone/*</code> prefix: Flask secret key, Google service account JSON, Cognito config, buyer sheet IDs, Stripe keys, and Brevo SMTP credentials. The ECS task role grants the container permission to retrieve them at startup — no access keys stored in environment variables, no credentials in the codebase, no secrets in version control. The Lambda function accesses the same Secrets Manager entries via its own least-privilege execution role.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">secrets manager</span>
+        <span class="build-tag">iam task role</span>
+        <span class="build-tag">iam execution role</span>
+        <span class="build-tag">zero hardcoded credentials</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">06</div>
+      <div class="build-title">Lead Generation Site
+        <span>WordPress · Full on-page SEO · Google Search Console</span>
+      </div>
+      <div class="build-body">
+        A companion WordPress site with 18 fully SEO-optimized pages targeting local organic search traffic — keyword-targeted content, internal linking structure, image optimization, schema metadata via AIOSEO, Google Search Console integration with sitemap submitted, and Google Business Profile configured for local search visibility. The business model is simple: motivated sellers are already searching online. Build the best-optimized site in the niche and let inbound traffic do the work.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">wordpress</span>
+        <span class="build-tag">aioseo</span>
+        <span class="build-tag">google search console</span>
+        <span class="build-tag">google business profile</span>
+        <span class="build-tag">on-page seo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TROUBLESHOOTING -->
+<section class="section" id="troubleshooting">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Problems I Solved</h2>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Login worked on desktop but redirected back to <code>/login</code> on mobile with no error. No <code>Set-Cookie</code> header visible in mobile browser network tab.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      Two separate bugs. First: session-writing lines were placed after a <code>return</code> statement — dead code, no syntax error, no warning, only caught by tracing the HTTP response. Second: <code>SESSION_COOKIE_SAMESITE</code> had an unclosed string quote, silently invalidating the config. Mobile browsers enforce cookie policies more strictly than desktop. Fixed both, set <code>SESSION_COOKIE_DOMAIN = None</code> so the cookie scopes to whatever domain serves the request, and set <code>SESSION_COOKIE_SAMESITE = 'Lax'</code> correctly.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">ECS health checks failing after containerizing with a slim Python image. Container would start, pass initial startup, then fail health checks and cycle continuously.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The health check command used <code>curl</code>, which isn't present in slim Python images. Replaced the health check with a Python one-liner using <code>urllib</code> from the standard library — no additional dependencies required. The container started passing health checks immediately.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Terraform rolled back the ECS task definition from <code>:3</code> to <code>:2</code> after a <code>terraform apply</code>. Site returned 502.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The CI/CD pipeline had deployed a new task definition outside of Terraform, causing state drift. When <code>terraform apply</code> ran, it saw the newer task definition as drift and corrected it back to the version in state. Manually forced the service back to the correct task definition with <code>aws ecs update-service --task-definition whetstone-app:3</code>. Lesson: when CI/CD deploys new task definitions outside of Terraform, running <code>terraform apply</code> will roll back to the state's version. Manage task definition updates through Terraform or accept that the pipeline owns that resource.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">502 on desktop after DNS cutover. Site working correctly on phone. DNS flush, Winsock reset, browser cache clear — all failed to resolve it.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The Windows hosts file had a hardcoded entry pointing <code>whetstoneplatform.com</code> at the old EC2 IP from a previous development session. The hosts file overrides everything — DNS flush, ISP cache, Google DNS, all of it. Removed the stale entry from <code>C:\Windows\System32\drivers\etc\hosts</code>. Site resolved correctly immediately. The hosts file is the first thing to check when DNS changes aren't taking effect on a specific machine.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Stripe checkout button returning <code>{"error":"You did not provide an API key"}</code> on the deployed ECS service.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The new Stripe secrets were added to Secrets Manager but never registered in the ECS task definition. The app read them at startup via <code>get_secret()</code> but the task definition only referenced the original Phase 2 secrets — the Stripe keys weren't in scope for the running container. Registered a new task definition revision with the Stripe secrets added and updated the ECS service to use it.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Amazon SES production access request denied with no specific reason. New account needed for transactional email delivery.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      New AWS accounts without usage history can be denied SES production access by automated trust scoring regardless of use case quality. Resubmitted appeal referencing active production infrastructure (ECS Fargate, Lambda, DynamoDB, API Gateway, Route 53, ACM) with a billing console screenshot as proof of legitimate use. While the appeal was pending, switched Lambda email delivery to Brevo SMTP — domain verified with DKIM and DMARC, credentials stored in Secrets Manager under <code>whetstone/brevo-smtp</code>. Brevo free tier (300 emails/day) covers low-volume transactional email without any configuration issues.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Route 53 <code>terraform apply</code> errored with "Tried to create resource record set but it already exists" during DNS cutover from EC2 to ECS.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      Terraform tried to create the new ALB alias records before the old EC2 A records finished deleting — a create/delete race condition. Added <code>allow_overwrite = true</code> to both <code>aws_route53_record</code> resources in the cutover Terraform config. Applied cleanly on the next run.
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Skills Demonstrated</h2>
+  </div>
+
+  <div class="skills-grid">
+    <div class="skill-group">
+      <div class="skill-group-title">// Cloud & Infrastructure</div>
+      <ul>
+        <li>AWS ECS Fargate (production)</li>
+        <li>Application Load Balancer + ACM</li>
+        <li>VPC with public/private subnets</li>
+        <li>NAT Gateway</li>
+        <li>Amazon ECR + lifecycle policies</li>
+        <li>Route 53 alias records</li>
+        <li>CloudWatch logs + retention</li>
+        <li>AWS Secrets Manager</li>
+      </ul>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">// Serverless & Backend</div>
+      <ul>
+        <li>AWS Lambda (event-driven)</li>
+        <li>Amazon API Gateway</li>
+        <li>Amazon DynamoDB</li>
+        <li>Amazon Cognito (auth + access control)</li>
+        <li>Stripe webhook automation</li>
+        <li>Google Sheets API v4</li>
+        <li>Brevo SMTP integration</li>
+        <li>EventBridge scheduling</li>
+      </ul>
+    </div>
+
+    <div class="skill-group">
+      <div class="skill-group-title">// DevOps & Automation</div>
+      <ul>
+        <li>Terraform IaC (full stack)</li>
+        <li>GitHub Actions CI/CD pipeline</li>
+        <li>Docker containerization</li>
+        <li>Rolling ECS deployments</li>
+        <li>IAM least-privilege design</li>
+        <li>DNS cutover management</li>
+        <li>Production incident documentation</li>
+        <li>Python / Flask application development</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-meta">
+    whetstoneplatform.com · AWS us-east-2 · May 2026 — Present<br>
+    Production · Self-funded · Solo build
+  </div>
+  <div class="footer-links">
+    <a href="https://whetstoneplatform.com" target="_blank">Live Platform ↗</a>
+    <a href="https://github.com/leyder-ben" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/ben-leyder/" target="_blank">LinkedIn</a>
+  </div>
+</footer>
+
+</body>
+</html>
