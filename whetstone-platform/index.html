@@ -140,7 +140,7 @@
     }
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 1px;
       background: var(--border);
       border: 1px solid var(--border);
@@ -473,12 +473,16 @@
       <span class="stat-label">Downtime Deploys</span>
     </div>
     <div class="stat">
-      <span class="stat-value">28</span>
+      <span class="stat-value">51</span>
       <span class="stat-label">Issues Documented</span>
     </div>
     <div class="stat">
-      <span class="stat-value">310</span>
+      <span class="stat-value">381</span>
       <span class="stat-label">Products Priced</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">5</span>
+      <span class="stat-label">Lambdas Running</span>
     </div>
   </div>
 </section>
@@ -498,7 +502,7 @@ Route 53 (whetstoneplatform.com)
            └── ECS Service — whetstone-app (desired: 1, rolling deploy)
                 └── Flask App (Docker container via ECR)
                      ├── Cognito — USER_PASSWORD_AUTH flow
-                     ├── Google Sheets API v4 — 6 buyer sheets · 310 products
+                     ├── Google Sheets API v4 — 7 buyer sheets · 381 products
                      └── Secrets Manager — all credentials at runtime
 
 <span class="arch-accent">// NETWORK LAYER — Terraform</span>
@@ -509,11 +513,39 @@ VPC (us-east-2)
       ├── ECS Tasks (NAT Gateway for outbound)
       └── No direct internet route inbound
 
-<span class="arch-accent">// SERVERLESS BACKEND — Lambda + API Gateway</span>
-Stripe Webhook ──▶ API Gateway ──▶ Lambda
- ├── payment_succeeded  → Cognito: create user → DynamoDB: write tenant → SES/Brevo: welcome email
- ├── invoice_payment_failed → Cognito: disable user → admin alert
- └── customer_subscription_deleted → Cognito: delete user → DynamoDB: update status
+<span class="arch-accent">// SERVERLESS BACKEND — 5 Lambda Functions</span>
+
+Stripe Webhook ──▶ API Gateway ──▶ Lambda (whetstone-stripe-webhook)
+  ├── payment_succeeded → Cognito: create user → DynamoDB: write tenant → Brevo: welcome email
+  ├── invoice_payment_failed → Brevo/SMS: operator alert → Stripe dunning: 4 retries
+  └── customer_subscription_deleted → Cognito: revoke access → DynamoDB: update status
+
+EventBridge (every 30 min) ──▶ Lambda (whetstone-price-monitor)
+  ├── Pulls all 7 buyer sheets via parsers
+  ├── Compares against DynamoDB price snapshots
+  ├── Detects price changes and accepting/not-accepting flips
+  ├── Respects per-operator quiet hours and buyer toggle settings
+  └── Delivers alerts via Brevo email + SNS SMS
+
+EventBridge (daily, 13:00 UTC) ──▶ Lambda (whetstone-fda-recall)
+  ├── Polls openFDA device/recall API for 5 manufacturers
+  ├── Deduplicates against whetstone-fda-recalls DynamoDB table
+  └── Immediate alert to all active operators bypassing quiet hours
+
+EventBridge (daily, noon UTC) ──▶ Lambda (whetstone-parser-health)
+  ├── Canary check on all 7 buyer parsers
+  ├── Price bounds validation
+  └── Admin alert on any parser failure
+
+EventBridge (hourly) ──▶ Lambda (whetstone-crm-followup-reminders)
+  ├── Checks pending follow-ups per operator
+  ├── Respects operator timezone and quiet hours
+  └── Delivers via existing SNS/Brevo stack
+
+<span class="arch-accent">// CRM DATA LAYER — DynamoDB</span>
+  whetstone-crm-contacts      (PK: contact_id, GSI: operator_email-index)
+  whetstone-crm-interactions  (PK: interaction_id, GSI: contact_id-index)
+  whetstone-crm-followups     (PK: followup_id, GSI: operator_email-index)
 
 <span class="arch-accent">// CI/CD PIPELINE — GitHub Actions</span>
 git push (main)
@@ -551,7 +583,7 @@ git push (main)
         <span>Pricing aggregator · Quote builder · Auth · Multi-tenant</span>
       </div>
       <div class="build-body">
-        A Flask web application that pulls live pricing from 6 buyer Google Sheets via the Sheets API v4, aggregates across 310 products in 23 categories, applies a margin formula, and renders an interactive quote builder. Cognito handles authentication. Session cookies are scoped correctly for production deployment behind an ALB. The app is containerized with Docker and deployed to ECS Fargate — no servers to manage.
+        A Flask web application that pulls live pricing from 7 buyer Google Sheets via the Sheets API v4, aggregates across 381 products in 23 categories, applies a margin formula, and renders an interactive quote builder. Cognito handles authentication. Session cookies are scoped correctly for production deployment behind an ALB. The app is containerized with Docker and deployed to ECS Fargate — no servers to manage.
       </div>
       <div class="build-tags">
         <span class="build-tag">python</span>
@@ -636,6 +668,60 @@ git push (main)
 
     <div class="build-item">
       <div class="build-num">06</div>
+      <div class="build-title">Notification &amp; Monitoring System
+        <span>Price monitor · FDA recalls · Parser health · EventBridge scheduling</span>
+      </div>
+      <div class="build-body">
+        A price monitoring Lambda runs on a 30-minute EventBridge schedule, pulling all 7 buyer sheets through the parser stack, comparing results against DynamoDB snapshots, and generating plain-English alerts when prices change or a buyer stops accepting a product. Per-operator settings control which buyers to watch, notification method (email, SMS, or both), quiet hours with timezone awareness, and margin thresholds. A separate FDA recall Lambda polls the openFDA device/recall API daily for 5 CGM and insulin pump manufacturers, deduplicates against a DynamoDB recall log, and fires immediate alerts to all active operators bypassing quiet hours. A parser health Lambda runs daily canary checks across all 7 buyer parsers with price bounds validation and admin alerting on failure.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">lambda</span>
+        <span class="build-tag">eventbridge</span>
+        <span class="build-tag">dynamodb</span>
+        <span class="build-tag">sns</span>
+        <span class="build-tag">brevo smtp</span>
+        <span class="build-tag">openfda api</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">07</div>
+      <div class="build-title">Operator CRM
+        <span>Contacts · Interaction history · Follow-up reminders · Multi-tenant</span>
+      </div>
+      <div class="build-body">
+        A full contact management system built into the platform. Operators log seller contacts, interaction history, and follow-up reminders without leaving the tool. Three DynamoDB tables (contacts, interactions, followups) with GSIs for operator-scoped queries. A Save to CRM button in the Fast Quote drawer passes quote data through a prefill flow directly into a new contact and interaction record. A follow-up reminder Lambda fires hourly, checks each operator's pending reminders against their local timezone and quiet hours, and delivers via the existing SNS/Brevo stack. Archived contacts preserve full interaction history and can be restored.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">dynamodb</span>
+        <span class="build-tag">lambda</span>
+        <span class="build-tag">eventbridge</span>
+        <span class="build-tag">crm</span>
+        <span class="build-tag">multi-tenant</span>
+        <span class="build-tag">timezone-aware</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">08</div>
+      <div class="build-title">Operator Self-Service &amp; Billing
+        <span>Settings · Stripe portal · Cancel flow · Forgot password · Dunning</span>
+      </div>
+      <div class="build-body">
+        Operators manage their own account without any admin intervention. Settings page covers notification preferences (independent email/SMS flags), up to 5 labeled phone numbers for SMS, quiet hours with timezone selection, per-buyer toggles, and margin thresholds. Stripe Customer Portal handles payment method updates. Self-service cancel with <code>cancel_at_period_end</code> and a confirmation modal to prevent accidents. Custom forgot-password flow using DynamoDB tokens with 1-hour TTL and Brevo delivery — completely replacing the original Cognito/SES dependency that was permanently rejected for this AWS account. Payment failure handling fires operator notifications on <code>invoice.payment_failed</code> with Stripe dunning configured for 4 retries before subscription cancellation.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">stripe</span>
+        <span class="build-tag">dynamodb</span>
+        <span class="build-tag">cognito</span>
+        <span class="build-tag">brevo smtp</span>
+        <span class="build-tag">self-service</span>
+        <span class="build-tag">dunning</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">09</div>
       <div class="build-title">Lead Generation Site
         <span>WordPress · Full on-page SEO · Google Search Console</span>
       </div>
@@ -736,6 +822,94 @@ git push (main)
       Terraform tried to create the new ALB alias records before the old EC2 A records finished deleting — a create/delete race condition. Added <code>allow_overwrite = true</code> to both <code>aws_route53_record</code> resources in the cutover Terraform config. Applied cleanly on the next run.
     </div>
   </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">DynamoDB table primary key mismatch causing silent auth failures. The first-login intro modal never fired despite the flag being set correctly in the console.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The <code>whetstone-operators</code> table is keyed by <code>operator_id</code> (UUID), not email. The <code>/app</code> route was calling <code>get_item</code> with <code>Key={'email': email}</code>, which raised a <code>ClientError</code> on key schema mismatch. A broad <code>except</code> block swallowed the error and left <code>show_intro = False</code>. Same bad key pattern was in the cancel-subscription route, meaning self-service cancel always returned "Account not found." Fix: moved the <code>has_seen_intro</code> flag to <code>whetstone-operator-prefs</code> (keyed by email), updated both read and write paths. Lesson: DynamoDB will not warn you about a wrong key at write time — only on <code>get_item</code> or <code>update_item</code>. Know which table uses which key before you write the route.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Lambda health timestamps in the admin dashboard showing stale dates or "Unknown" despite Lambdas running successfully on schedule.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      <code>filter_log_events</code> without a stream name searches all streams but hits the oldest stream first within the result limit. Lambda creates a new log stream per execution context, so recent runs were in newer streams the query never reached. Fix: call <code>describe_log_streams</code> with <code>orderBy=LastEventTime</code> and <code>descending=True</code> first, then pass the most recent stream name explicitly to <code>filter_log_events</code>. Lesson: never query CloudWatch logs across all streams for a Lambda that has accumulated multiple execution contexts — always identify the most recent stream first.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">DynamoDB <code>UpdateItem</code> throwing <code>ValidationException</code> in production on a contact edit route. Error: "Attribute name is a reserved keyword: source."</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      DynamoDB treats <code>source</code> as a reserved keyword. Using it directly in an <code>UpdateExpression</code> causes a runtime <code>ValidationException</code> — no error at write time, only on update. Fix: added <code>#src</code> to <code>ExpressionAttributeNames</code> mapping to <code>source</code>, updated <code>UpdateExpression</code> to use <code>#src</code>. Same pattern already used for <code>name → #n</code> in the same call. Lesson: DynamoDB reserved keyword errors are runtime errors, not syntax errors. Would have been caught immediately with local dev testing before deploy.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Stripe SDK objects don't support <code>.get()</code> calls — admin dashboard showing 0 active subscribers and $0 MRR despite subscribers existing in DynamoDB.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The Stripe Python SDK wraps API responses in custom object types. Calling <code>sub.get('field_name')</code> throws a <code>KeyError</code> because the SDK intercepts attribute access and treats <code>'get'</code> as a key lookup. Fields like <code>trial_end</code>, <code>current_period_end</code>, and <code>discount</code> were all throwing silently inside an <code>except</code> block, preventing counters from incrementing. Fix: replaced all <code>.get()</code> calls with individual <code>try/except</code> blocks using direct attribute access. Lesson: never use <code>.get()</code> on Stripe SDK objects — the SDK's <code>__getattr__</code> intercepts everything.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">In-memory cache populated on first search but every subsequent request still showed a cache miss. Search taking 7–8 seconds on every request in production despite 52ms locally.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      Gunicorn was configured with 2 workers. Each worker is a separate OS process with its own memory space — cache written in worker A is invisible to worker B. Requests round-robin between workers so cache hits were essentially impossible. Fix: reduced Gunicorn to 1 worker so all requests share the same process memory. Lesson: in-process caching only works with a single worker. If you need both caching and parallelism, the cache has to live outside the application process — Redis or ElastiCache.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Search taking 40–50 seconds intermittently in production. Assumed cold start but persisted after the container warmed up. CloudWatch showed 429 errors from <code>sheets.googleapis.com</code>.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      Each search request was fetching all 7 buyer sheets fresh with no caching. Rapid back-to-back searches during testing burned through the Google Sheets API 60 reads/minute quota. Subsequent requests had to wait for the quota window to reset. Fix: added a 10-minute in-memory cache to the aggregator. Raw unfiltered results cached at module level. Operator-specific filtering applied after cache lookup. Cache miss fetches all sheets once; all requests within the TTL window serve from memory. Result: 39ms on cache hit vs 8–12 seconds on cold fetch. Lesson: any route that hits an external API on every request will eventually hit rate limits under real load. Cache aggressively, fetch lazily.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Purge button <code>onclick</code> not firing for contacts with spaces in their name. <code>btn.onclick</code> returned <code>null</code> in the browser console even though <code>getAttribute('onclick')</code> showed the string was present.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The <code>onclick</code> attribute used double quotes as the HTML delimiter. The Jinja <code>tojson</code> filter wraps string values in double quotes. A contact name like "John Smith" produced <code>onclick="showPurgeModal('id', "John Smith")"</code> — the browser parsed the attribute as ending at the second double quote before the name, leaving the handler malformed and unbound. Fix: replaced inline <code>onclick</code> with data attributes (<code>data-contact-id</code>, <code>data-contact-name</code> using Jinja's <code>| e</code> filter for HTML encoding) and a delegated event listener on <code>document</code>. Lesson: never mix <code>tojson</code> output inside an HTML attribute delimited by double quotes — use data attributes and event delegation instead.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">GitHub Actions pipeline warning — "Node.js 20 actions are deprecated. <code>actions/checkout@v4</code> and <code>aws-actions/configure-aws-credentials@v4</code> may not work as expected." Hard deadline: Node.js 20 forced to Node.js 24 on June 16, 2026.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      No Node.js 24 compatible versions existed for these specific actions at time of fix. Added <code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true</code> to the <code>env</code> block in <code>deploy.yml</code> — opts the entire workflow into Node.js 24 without requiring version bumps on individual actions. Lesson: when action version bumps aren't available yet, <code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24</code> is the clean interim fix. Check for updated action versions periodically and bump them properly when they're released.
+    </div>
+  </div>
 </section>
 
 <!-- SKILLS -->
@@ -757,6 +931,7 @@ git push (main)
         <li>Route 53 alias records</li>
         <li>CloudWatch logs + retention</li>
         <li>AWS Secrets Manager</li>
+        <li>Amazon SNS</li>
       </ul>
     </div>
 
@@ -767,10 +942,13 @@ git push (main)
         <li>Amazon API Gateway</li>
         <li>Amazon DynamoDB</li>
         <li>Amazon Cognito (auth + access control)</li>
+        <li>Amazon SNS</li>
         <li>Stripe webhook automation</li>
         <li>Google Sheets API v4</li>
         <li>Brevo SMTP integration</li>
         <li>EventBridge scheduling</li>
+        <li>openFDA API</li>
+        <li>Multi-tenant CRM (DynamoDB)</li>
       </ul>
     </div>
 
@@ -785,6 +963,8 @@ git push (main)
         <li>DNS cutover management</li>
         <li>Production incident documentation</li>
         <li>Python / Flask application development</li>
+        <li>CloudWatch log stream pagination</li>
+        <li>Operator self-service flows</li>
       </ul>
     </div>
   </div>
