@@ -473,7 +473,7 @@
       <span class="stat-label">Downtime Deploys</span>
     </div>
     <div class="stat">
-      <span class="stat-value">51</span>
+      <span class="stat-value">59</span>
       <span class="stat-label">Issues Documented</span>
     </div>
     <div class="stat">
@@ -690,7 +690,7 @@ git push (main)
         <span>Contacts · Interaction history · Follow-up reminders · Multi-tenant</span>
       </div>
       <div class="build-body">
-        A full contact management system built into the platform. Operators log seller contacts, interaction history, and follow-up reminders without leaving the tool. Three DynamoDB tables (contacts, interactions, followups) with GSIs for operator-scoped queries. A Save to CRM button in the Fast Quote drawer passes quote data through a prefill flow directly into a new contact and interaction record. A follow-up reminder Lambda fires hourly, checks each operator's pending reminders against their local timezone and quiet hours, and delivers via the existing SNS/Brevo stack. Archived contacts preserve full interaction history and can be restored.
+        A full contact management system built into the platform. Operators log seller contacts, interaction history, and follow-up reminders without leaving the tool. Three DynamoDB tables (contacts, interactions, followups) with GSIs for operator-scoped queries. A Save to CRM button in the Fast Quote drawer passes quote data through a prefill flow directly into a new contact and interaction record. A follow-up reminder Lambda fires hourly, checks each operator's pending reminders against their local timezone and quiet hours, and delivers via the existing SNS/Brevo stack. Archived contacts preserve full interaction history and can be restored. Bulk contact import via CSV accepts name, phone, email, address, notes, meetup location, preferred payment, and source columns with case-insensitive header matching and skips rows without a name.
       </div>
       <div class="build-tags">
         <span class="build-tag">dynamodb</span>
@@ -699,6 +699,8 @@ git push (main)
         <span class="build-tag">crm</span>
         <span class="build-tag">multi-tenant</span>
         <span class="build-tag">timezone-aware</span>
+        <span class="build-tag">csv import</span>
+        <span class="build-tag">address field</span>
       </div>
     </div>
 
@@ -734,6 +736,38 @@ git push (main)
         <span class="build-tag">google search console</span>
         <span class="build-tag">google business profile</span>
         <span class="build-tag">on-page seo</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">10</div>
+      <div class="build-title">Platform-Wide Design System
+        <span>Shared stylesheet · CSS custom properties · Zero duplicated styles</span>
+      </div>
+      <div class="build-body">
+        As the platform grew from a single pricing tool to a multi-feature SaaS with CRM, follow-ups, settings, and admin pages, each template had accumulated its own inline CSS with hardcoded hex values and its own font stack — the same styles copy-pasted across ten files with no single source of truth. Extracted all shared styles into a single <code>static/css/whetstone.css</code> stylesheet with CSS custom properties for the full color palette and typography scale. Removed approximately 1,100 lines of duplicated inline CSS across ten templates. All authenticated pages now pull from the shared stylesheet, making platform-wide design changes a single-file edit.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">css custom properties</span>
+        <span class="build-tag">design system</span>
+        <span class="build-tag">flask / jinja2</span>
+        <span class="build-tag">refactor</span>
+      </div>
+    </div>
+
+    <div class="build-item">
+      <div class="build-num">11</div>
+      <div class="build-title">Operator Help Center
+        <span>Video library · Collapsible FAQs · Extracted to shared nav partial</span>
+      </div>
+      <div class="build-body">
+        Replaced a single embedded YouTube video with a structured help system available on every authenticated page. The Help Center panel contains a video playlist section with thumbnail cards that load YouTube embeds on selection, and four collapsible FAQ sections covering the full Base tier feature set — 18 questions organized into Fast Quote, Price Alerts and Notifications, Whetstone CRM, and Account and Billing. Originally embedded in the Fast Quote template, the entire Help Center was extracted to the shared nav partial so it renders on all authenticated pages without duplication. Three tutorial videos produced and published to YouTube — Fast Quote walkthrough, Whetstone CRM walkthrough, and a short Mobile Install guide.
+      </div>
+      <div class="build-tags">
+        <span class="build-tag">ux</span>
+        <span class="build-tag">jinja2 partials</span>
+        <span class="build-tag">youtube api</span>
+        <span class="build-tag">video production</span>
       </div>
     </div>
   </div>
@@ -908,6 +942,61 @@ git push (main)
     <div class="issue-resolution">
       <span class="issue-badge resolved">RESOLVED</span>&nbsp;
       No Node.js 24 compatible versions existed for these specific actions at time of fix. Added <code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true</code> to the <code>env</code> block in <code>deploy.yml</code> — opts the entire workflow into Node.js 24 without requiring version bumps on individual actions. Lesson: when action version bumps aren't available yet, <code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24</code> is the clean interim fix. Check for updated action versions periodically and bump them properly when they're released.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Platform-wide analytics on <code>/admin/analytics</code> showing inflated quote counts — test account activity was being included in operator-facing metrics despite being filtered correctly on per-operator views.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The <code>TEST_ACCOUNT_EMAILS</code> filter was applied to per-operator quote breakdowns but not to the platform-wide aggregation queries that drove the summary tiles. Two separate code paths — one filtered, one not — both contributing to the same displayed metrics. Fix: added <code>FilterExpression=not_test_account</code> to all DynamoDB scan and query operations on the analytics route. Lesson: when the same data is read through multiple code paths, each path needs its own filter. A filter applied in one place doesn't automatically apply everywhere that touches the same table.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Creating a top-level Python directory named <code>platform/</code> flagged as a stdlib shadowing risk before any code was written.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      The repo root is on <code>sys.path</code>. Any top-level directory named after a stdlib module becomes a local package that shadows the real one. Flask, Gunicorn, and boto3 all use Python's <code>platform</code> module internally for OS and version detection — shadowing it causes obscure import failures that are very difficult to diagnose. Named the platform layer directory <code>whetstone/</code> instead. <code>lambda/platform/</code> and <code>templates/platform/</code> are safe — they are not Python packages and are not on <code>sys.path</code>. Lesson: never name a top-level Python package after a stdlib module. Verify with <code>python3 -c "import &lt;name&gt;"</code> before choosing a directory name.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">ECR repository needed to be renamed from <code>whetstone-pricing</code> to <code>whetstone-platform</code>. ECR repository names are immutable — no in-place rename exists in AWS or Terraform.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      Executed a create-migrate-delete sequence entirely within Terraform and GitHub Actions. Added a new <code>app_v2</code> ECR resource alongside the existing one and applied — AWS created the new repo. Updated the ECS task definition image reference to the new repo URL and merged to main — the CI/CD pipeline pushed the image to the new repo and ECS deployed from it. Verified production was serving correctly, then deleted the old repo via AWS CLI and cleaned up Terraform state with <code>terraform state rm</code> and <code>terraform state mv</code> to rename <code>app_v2</code> back to <code>app</code>. Final <code>terraform apply</code> showed zero changes. Lesson: for any immutable AWS resource rename, the pattern is always create-new, migrate traffic, delete old, then reconcile Terraform state. State surgery is safe and reversible — it only touches the state file, not AWS.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Stripe coupon code writing as <code>null</code> to DynamoDB on checkout completion despite the promotion code being present in the Stripe dashboard. Standard dict and attribute access patterns all returned <code>None</code>.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      <code>stripe.PromotionCode.retrieve()</code> returns a <code>StripeObject</code>, not a plain dict. Calling <code>.get('code')</code>, <code>['code']</code>, or <code>getattr(obj, 'code', None)</code> are all unreliable on these objects. <code>str(promo_obj)</code> produces valid JSON with all fields present. Fix: <code>json.loads(str(promo_obj)).get('code')</code>. Additional finding: when a checkout total is $0 due to a 100% coupon, Stripe sends an empty <code>discounts</code> array on the session object — the discount is on the subscription object instead, requiring a fallback retrieval path. Lesson: never use <code>.get()</code> or <code>getattr()</code> directly on Stripe SDK objects. Use <code>json.loads(str(obj))</code> to get a plain dict with reliable field access.
+    </div>
+  </div>
+
+  <div class="issue-block">
+    <div class="issue-header">
+      <span class="issue-badge issue">ISSUE</span>
+      <span class="issue-text">Parser health check email reporting "2 issue(s) detected" in the subject line but only showing one actual issue in the body. First Class Medical canary check failing despite the parser returning 77 products.</span>
+    </div>
+    <div class="issue-resolution">
+      <span class="issue-badge resolved">RESOLVED</span>&nbsp;
+      Two separate bugs. First: the canary keyword <code>'dexcom g7'</code> never matched FCM's product names because FCM uses <code>'G7 1 Pk...'</code> without a Dexcom prefix — verified by running <code>parse()</code> locally and filtering output. Changed keyword to <code>'g7'</code>. Second: the sheet URL was being appended to <code>all_issues</code> as its own list item, causing <code>len(all_issues)</code> to count it as an additional issue. Refactored to append the sheet URL inline to the last real issue entry instead. Lesson: canary keywords must match parser output exactly — check <code>parse()</code> output locally before writing canary strings. And when a counter drives user-visible output like an email subject line, audit every item that gets added to the list it counts.
     </div>
   </div>
 </section>
