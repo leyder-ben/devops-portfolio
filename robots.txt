@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://leyder-ben.github.io/devops-portfolio/sitemap.xml
